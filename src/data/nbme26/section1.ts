@@ -46,9 +46,6 @@ import spinalCordHistologyImage from "@/assets/exam-images/page_356.jpg"; // Spi
 import diaperRashImage from "@/assets/exam-images/page_360.jpg"; // Candida diaper rash
 import imagingWithArrowsImage from "@/assets/exam-images/page_370.jpg"; // CT/X-ray with arrows
 import psoriasisImage from "@/assets/exam-images/page_390.jpg"; // Psoriasis-like lesions
-import page13_2Image from "@/assets/exam-images/page_13_2.jpg"; // Additional page 13 image
-import page13_3Image from "@/assets/exam-images/page_13_3.jpg"; // Blood smear
-import page16_2Image from "@/assets/exam-images/page_16_2.jpg"; // Plasma osmolality graph
 
 export const section1Questions: Question[] = [
   {
@@ -153,6 +150,8 @@ export const section1Questions: Question[] = [
     correctAnswer: "B",
     explanation: "Autoimmune hemolysis explains this patient's anemia, unconjugated hyperbilirubinemia, reticulocytosis (large blue-colored erythrocytes), and spherocytes on the peripheral smear.\n\nAutoimmune hemolytic anemia (AIHA) occurs due to production of antibodies targeting circulating red blood cell (RBC) surface antigens, marking them for removal in the reticuloendothelial system (RES) or fixing complement leading to intravascular hemolysis.\n\nIgG antibodies are active at the physiologic temperature of the human body (called \"warm AIHA\"); these do not routinely activate complement. Instead, they mark the cells for removal. Phagocytosis of the IgG antibody along with a component of the erythrocyte membrane creates sphere-shaped RBCs seen on peripheral smear.",
     educationalObjective: "Chronic lymphocytic leukemia (CLL) is associated with autoimmune hemolytic anemia (AIHA). Warm AIHA is mediated by IgG antibodies that cause extravascular hemolysis with spherocyte formation.",
+    image: spherocytesImage,
+    imageCaption: "Peripheral blood smear showing spherocytes"
   },
   {
     id: 8,
@@ -253,7 +252,8 @@ export const section1Questions: Question[] = [
     correctAnswer: "A",
     explanation: "The left anterior descending (LAD) artery supplies the anterior wall of the left ventricle, anterior two-thirds of the interventricular septum, and apex of the heart. Occlusion leads to anterior wall myocardial infarction with characteristic ST elevations in V1-V4 (anterior leads).\n\nCoronary artery territories:\n• LAD: Anterior wall, anterior septum, apex → ST elevation V1-V4\n• Left circumflex (LCx): Lateral wall → ST elevation I, aVL, V5-V6\n• Right coronary artery (RCA): Inferior wall, posterior wall, RV → ST elevation II, III, aVF",
     educationalObjective: "The LAD supplies the anterior wall of the left ventricle. LAD occlusion causes anterior MI with ST elevation in leads V1-V4.",
-    // Image available in actual exam
+    image: ecgLabeledImage,
+    imageCaption: "ECG with labeled points"
   },
   {
     id: 15,
