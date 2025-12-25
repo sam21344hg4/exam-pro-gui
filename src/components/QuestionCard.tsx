@@ -8,6 +8,8 @@ interface QuestionCardProps {
   showExplanation: boolean;
   onSelectAnswer: (answer: string) => void;
   fontSize: number;
+  strikethroughs: Set<string>;
+  onToggleStrikethrough: (optionLabel: string) => void;
 }
 
 export const QuestionCard = ({
@@ -16,6 +18,8 @@ export const QuestionCard = ({
   showExplanation,
   onSelectAnswer,
   fontSize,
+  strikethroughs,
+  onToggleStrikethrough,
 }: QuestionCardProps) => {
   const isAnswered = selectedAnswer !== null;
   const isCorrect = selectedAnswer === question.correctAnswer;
@@ -30,7 +34,7 @@ export const QuestionCard = ({
       className="w-full max-w-4xl mx-auto"
     >
       {/* Question Stem */}
-      <div className="mb-8 rounded-xl bg-question-bg p-6 md:p-8 shadow-sm">
+      <div className="mb-6 rounded-xl bg-question-bg p-6 md:p-8 shadow-sm">
         <div className="flex items-start gap-4">
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
             {question.id}
@@ -43,6 +47,13 @@ export const QuestionCard = ({
           </p>
         </div>
       </div>
+
+      {/* Strikethrough hint */}
+      {!showExplanation && (
+        <p className="text-xs text-muted-foreground mb-3 text-center">
+          Right-click an answer to strike it out
+        </p>
+      )}
 
       {/* Answer Options */}
       <div className="space-y-3 mb-8">
@@ -62,6 +73,8 @@ export const QuestionCard = ({
               onClick={() => onSelectAnswer(option.label)}
               disabled={showExplanation}
               fontSize={fontSize}
+              isStrikethrough={strikethroughs.has(`${question.id}-${option.label}`)}
+              onToggleStrikethrough={() => onToggleStrikethrough(option.label)}
             />
           </motion.div>
         ))}
