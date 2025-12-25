@@ -8,6 +8,11 @@ interface QuestionNavProps {
   answers: Record<number, string>;
   flagged: Set<number>;
   onNavigate: (questionNumber: number) => void;
+  sectionStart: number;
+  sectionEnd: number;
+  currentSection: number;
+  totalSections: number;
+  isTimed: boolean;
 }
 
 export const QuestionNav = ({
@@ -16,15 +21,34 @@ export const QuestionNav = ({
   answers,
   flagged,
   onNavigate,
+  sectionStart,
+  sectionEnd,
+  currentSection,
+  totalSections,
+  isTimed,
 }: QuestionNavProps) => {
+  // In timed mode, only show current section questions
+  const questionsToShow = isTimed
+    ? Array.from({ length: sectionEnd - sectionStart + 1 }, (_, i) => sectionStart + i)
+    : Array.from({ length: totalQuestions }, (_, i) => i + 1);
+
   return (
     <div className="bg-card rounded-xl border border-border p-4 shadow-sm">
-      <h3 className="text-sm font-semibold text-foreground mb-3">Question Navigator</h3>
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-sm font-semibold text-foreground">Question Navigator</h3>
+        {isTimed && (
+          <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded">
+            Section {currentSection}/{totalSections}
+          </span>
+        )}
+      </div>
       <div className="grid grid-cols-5 gap-2">
-        {Array.from({ length: totalQuestions }, (_, i) => i + 1).map((num) => {
+        {questionsToShow.map((num) => {
           const isAnswered = answers[num] !== undefined;
           const isCurrent = num === currentQuestion;
           const isFlagged = flagged.has(num);
+          // Display number relative to section start in timed mode
+          const displayNum = isTimed ? num - sectionStart + 1 : num;
 
           return (
             <motion.button
@@ -42,7 +66,7 @@ export const QuestionNav = ({
                   : "bg-muted text-muted-foreground hover:bg-muted/80"
               )}
             >
-              {num}
+              {displayNum}
               {isFlagged && (
                 <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-warning">
                   <Flag className="h-2.5 w-2.5 text-warning-foreground" />

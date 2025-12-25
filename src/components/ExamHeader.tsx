@@ -26,6 +26,10 @@ interface ExamHeaderProps {
   onFontSizeChange: (size: number) => void;
   onEndBlock: () => void;
   showTimer: boolean;
+  currentSection: number;
+  totalSections: number;
+  sectionStart: number;
+  sectionEnd: number;
 }
 
 export const ExamHeader = ({
@@ -45,6 +49,10 @@ export const ExamHeader = ({
   onFontSizeChange,
   onEndBlock,
   showTimer,
+  currentSection,
+  totalSections,
+  sectionStart,
+  sectionEnd,
 }: ExamHeaderProps) => {
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -52,7 +60,10 @@ export const ExamHeader = ({
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const progress = (answeredCount / totalQuestions) * 100;
+  // Progress within current section
+  const sectionQuestions = sectionEnd - sectionStart + 1;
+  const questionInSection = currentQuestion - sectionStart + 1;
+  const progress = (questionInSection / sectionQuestions) * 100;
   const isLowTime = timeRemaining < 300; // Less than 5 minutes
 
   return (
@@ -66,9 +77,9 @@ export const ExamHeader = ({
           
           <div className="hidden sm:flex flex-col text-xs">
             <span className="font-semibold text-foreground">
-              Item: {currentQuestion} of {totalQuestions}
+              Item: {questionInSection} of {sectionQuestions}
             </span>
-            <span className="text-muted-foreground">Block: 1 of 1</span>
+            <span className="text-muted-foreground">Section {currentSection} of {totalSections}</span>
           </div>
 
           <Separator orientation="vertical" className="h-8 mx-1 hidden sm:block" />
@@ -90,7 +101,7 @@ export const ExamHeader = ({
             variant="outline"
             size="sm"
             onClick={onPrevious}
-            disabled={currentQuestion === 1}
+            disabled={currentQuestion === sectionStart}
             className="gap-1 h-8 text-xs"
           >
             <ChevronLeft className="h-4 w-4" />
@@ -107,7 +118,7 @@ export const ExamHeader = ({
             variant="outline"
             size="sm"
             onClick={onNext}
-            disabled={currentQuestion === totalQuestions}
+            disabled={currentQuestion === sectionEnd}
             className="gap-1 h-8 text-xs"
           >
             <span className="hidden sm:inline">Next</span>
