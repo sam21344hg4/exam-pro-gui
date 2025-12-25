@@ -1,5 +1,11 @@
 import { Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
 
 interface OptionButtonProps {
   label: string;
@@ -10,6 +16,8 @@ interface OptionButtonProps {
   onClick: () => void;
   disabled?: boolean;
   fontSize?: number;
+  isStrikethrough?: boolean;
+  onToggleStrikethrough?: () => void;
 }
 
 export const OptionButton = ({
@@ -21,9 +29,14 @@ export const OptionButton = ({
   onClick,
   disabled,
   fontSize = 18,
+  isStrikethrough = false,
+  onToggleStrikethrough,
 }: OptionButtonProps) => {
   const getBackgroundClass = () => {
     if (!showResult) {
+      if (isStrikethrough) {
+        return "bg-muted/50 border-border opacity-60";
+      }
       return isSelected ? "bg-option-selected border-primary" : "bg-option-bg border-border hover:bg-option-hover";
     }
     
@@ -40,6 +53,9 @@ export const OptionButton = ({
 
   const getLabelClass = () => {
     if (!showResult) {
+      if (isStrikethrough) {
+        return "bg-muted/70 text-muted-foreground line-through";
+      }
       return isSelected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground";
     }
     
@@ -54,7 +70,7 @@ export const OptionButton = ({
     return "bg-muted text-muted-foreground";
   };
 
-  return (
+  const buttonContent = (
     <button
       onClick={onClick}
       disabled={disabled}
@@ -81,11 +97,41 @@ export const OptionButton = ({
         )}
       </span>
       <span 
-        className="font-clinical text-left text-foreground"
+        className={cn(
+          "font-clinical text-left text-foreground",
+          isStrikethrough && !showResult && "line-through text-muted-foreground"
+        )}
         style={{ fontSize: `${fontSize}px` }}
       >
         {text}
       </span>
     </button>
+  );
+
+  // If no strikethrough handler or in result mode, just render the button
+  if (!onToggleStrikethrough || showResult) {
+    return buttonContent;
+  }
+
+  // Wrap with context menu for strikethrough feature
+  return (
+    <ContextMenu>
+      <ContextMenuTrigger asChild>
+        {buttonContent}
+      </ContextMenuTrigger>
+      <ContextMenuContent className="w-48">
+        <ContextMenuItem onClick={onToggleStrikethrough} className="gap-2">
+          {isStrikethrough ? (
+            <>
+              <span className="text-sm">Remove strikethrough</span>
+            </>
+          ) : (
+            <>
+              <span className="text-sm line-through">Strikethrough</span>
+            </>
+          )}
+        </ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
   );
 };

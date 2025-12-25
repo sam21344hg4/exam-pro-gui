@@ -20,10 +20,13 @@ const Index = () => {
   const [timeRemaining, setTimeRemaining] = useState(selectedExam.timeLimit * 60);
   const [timeSpent, setTimeSpent] = useState(0);
   
-  // New state for toolbar features
+  // Toolbar features state
   const [notes, setNotes] = useState("");
   const [isDark, setIsDark] = useState(false);
   const [fontSize, setFontSize] = useState(18);
+  
+  // Strikethrough state - stores "questionId-optionLabel" strings
+  const [strikethroughs, setStrikethroughs] = useState<Set<string>>(new Set());
 
   const questions = selectedExam.questions;
   const question = questions.find((q) => q.id === currentQuestion) || questions[0];
@@ -84,6 +87,7 @@ const Index = () => {
     setTimeRemaining(selectedExam.timeLimit * 60);
     setTimeSpent(0);
     setNotes("");
+    setStrikethroughs(new Set());
   }, [selectedExam]);
 
   const handlePractice = useCallback(() => {
@@ -95,6 +99,7 @@ const Index = () => {
     setTimeRemaining(999 * 60);
     setTimeSpent(0);
     setNotes("");
+    setStrikethroughs(new Set());
   }, []);
 
   const handleSelectAnswer = useCallback((answer: string) => {
@@ -161,6 +166,7 @@ const Index = () => {
     setTimeRemaining(selectedExam.timeLimit * 60);
     setTimeSpent(0);
     setNotes("");
+    setStrikethroughs(new Set());
   }, [selectedExam]);
 
   const handleReview = useCallback(() => {
@@ -176,6 +182,19 @@ const Index = () => {
   const handleToggleTheme = useCallback(() => {
     setIsDark((prev) => !prev);
   }, []);
+
+  const handleToggleStrikethrough = useCallback((optionLabel: string) => {
+    const key = `${currentQuestion}-${optionLabel}`;
+    setStrikethroughs((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  }, [currentQuestion]);
 
   // Start Screen
   if (mode === "start") {
@@ -241,6 +260,8 @@ const Index = () => {
                 showExplanation={showExplanation || mode === "review"}
                 onSelectAnswer={handleSelectAnswer}
                 fontSize={fontSize}
+                strikethroughs={strikethroughs}
+                onToggleStrikethrough={handleToggleStrikethrough}
               />
             </AnimatePresence>
 
