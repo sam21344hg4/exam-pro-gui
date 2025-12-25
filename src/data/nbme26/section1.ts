@@ -1,5 +1,15 @@
 import { Question } from "./types";
 
+// Import exam images
+import q1Image from "@/assets/exam-images/page_1.jpg";
+import q6Image from "@/assets/exam-images/page_11.jpg";
+import q7Image from "@/assets/exam-images/page_13.jpg";
+import q8Image from "@/assets/exam-images/page_18.jpg";
+import q9Image from "@/assets/exam-images/page_16.jpg";
+import q14Image from "@/assets/exam-images/page_28.jpg";
+import q21Image from "@/assets/exam-images/page_41.jpg";
+import q23Image from "@/assets/exam-images/page_45.jpg";
+
 export const section1Questions: Question[] = [
   {
     id: 1,
@@ -14,7 +24,7 @@ export const section1Questions: Question[] = [
     correctAnswer: "D",
     explanation: "The electrophoresis pattern in Choice D demonstrates a deficiency of immunoglobulins. This young patient with Staphylococcus aureus bacteremia and a history of multiple prior infections has a clinical syndrome consistent with hypogammaglobulinemia (an immunodeficiency), which is reflected by the absence of the gamma fraction on serum protein electrophoresis.\n\nSerum protein electrophoresis separates major serum proteins by size and charge:\n\n• Albumin: Largest peak (left side of the diagram); migrates toward the positive pole (most negative charge).\n• Alpha fraction: Next peak; mainly α1-antitrypsin, thyroid-binding globulin, and transcortin.\n• Beta fraction: Contains transferrin, β-lipoproteins, and complement proteins.\n• Gamma fraction: Contains immunoglobulins (IgM, IgG, IgD, IgE). In hypogammaglobulinemia, there is a marked reduction or absence of this gamma spike.",
     educationalObjective: "Serum protein electrophoresis separates blood proteins based on charge and size. Abnormal electrophoresis patterns help identify disease states. The absence of a gamma spike indicates immunodeficiency due to hypogammaglobulinemia or agammaglobulinemia.",
-    image: "https://images.unsplash.com/photo-1579154204601-01588f351e67?w=600&h=400&fit=crop",
+    image: q1Image,
     imageCaption: "Serum protein electrophoresis patterns"
   },
   {
@@ -88,7 +98,7 @@ export const section1Questions: Question[] = [
     correctAnswer: "D",
     explanation: "The jejunum (X) can be distinguished from the ileum (Y) by several characteristic features. The inner mucosal folds, or plicae circulares, are more prominent, more numerous, and taller in the jejunum compared to the ileum. This leads to an increased mucosal surface area and an associated feathered appearance after the administration of oral contrast material.\n\nThe jejunum also shows a larger caliber, thicker muscular walls, longer vasa rectae, and fewer arcades. The ileum is notable for the presence of Peyer patches and mucosal lymphoid follicles.",
     educationalObjective: "The jejunum possesses several characteristic features, including prominent plicae circulares, which lends the jejunum an increased mucosal surface area and a feathered appearance with oral contrast material.",
-    image: "https://images.unsplash.com/photo-1559757175-0eb30cd8c063?w=600&h=400&fit=crop",
+    image: q6Image,
     imageCaption: "GI tract contrast study showing jejunum (X) and ileum (Y)"
   },
   {
@@ -174,8 +184,7 @@ export const section1Questions: Question[] = [
     correctAnswer: "D",
     explanation: "The biopsy findings describe small cell lung carcinoma (SCLC): small round blue cells, scant cytoplasm, nuclear molding, and neuroendocrine markers (chromogranin, synaptophysin). SCLC is most commonly associated with SIADH.\n\nSCLC cells can produce ectopic ADH (vasopressin), leading to:\n• Euvolemic hyponatremia\n• Low serum osmolality\n• Inappropriately concentrated urine\n• Urine sodium >20 mEq/L\n\nOther paraneoplastic syndromes associated with SCLC include:\n• Cushing syndrome (ectopic ACTH)\n• Lambert-Eaton myasthenic syndrome (anti-voltage-gated calcium channel antibodies)",
     educationalObjective: "Small cell lung carcinoma is a neuroendocrine tumor commonly associated with paraneoplastic SIADH due to ectopic ADH production, causing euvolemic hyponatremia.",
-    image: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=600&h=400&fit=crop",
-    imageCaption: "Chest CT showing right upper lobe mass"
+    // Image available in actual exam
   },
   {
     id: 13,
@@ -204,8 +213,7 @@ export const section1Questions: Question[] = [
     correctAnswer: "A",
     explanation: "The left anterior descending (LAD) artery supplies the anterior wall of the left ventricle, anterior two-thirds of the interventricular septum, and apex of the heart. Occlusion leads to anterior wall myocardial infarction with characteristic ST elevations in V1-V4 (anterior leads).\n\nCoronary artery territories:\n• LAD: Anterior wall, anterior septum, apex → ST elevation V1-V4\n• Left circumflex (LCx): Lateral wall → ST elevation I, aVL, V5-V6\n• Right coronary artery (RCA): Inferior wall, posterior wall, RV → ST elevation II, III, aVF",
     educationalObjective: "The LAD supplies the anterior wall of the left ventricle. LAD occlusion causes anterior MI with ST elevation in leads V1-V4.",
-    image: "https://images.unsplash.com/photo-1628348068343-c6a848d2b6dd?w=600&h=400&fit=crop",
-    imageCaption: "Coronary artery anatomy"
+    // Image available in actual exam
   },
   {
     id: 15,
@@ -248,8 +256,7 @@ export const section1Questions: Question[] = [
     correctAnswer: "A",
     explanation: "The clinical presentation and barium swallow findings are classic for achalasia. Achalasia is an esophageal motility disorder characterized by:\n\n• Failure of lower esophageal sphincter (LES) relaxation\n• Absent esophageal peristalsis\n• Loss of inhibitory neurons (nitric oxide, VIP) in the myenteric plexus\n\nPatients present with:\n• Progressive dysphagia to solids AND liquids\n• Regurgitation of undigested food\n• Aspiration risk\n\nBarium swallow shows dilated esophagus with \"bird beak\" narrowing at the LES. Treatment options include pneumatic dilation, surgical myotomy, or botulinum toxin injection.",
     educationalObjective: "Achalasia presents with dysphagia to solids and liquids, regurgitation, and characteristic \"bird beak\" appearance on barium swallow due to LES failure to relax.",
-    image: "https://images.unsplash.com/photo-1530026405186-ed1f139313f8?w=600&h=400&fit=crop",
-    imageCaption: "Barium swallow showing bird beak appearance"
+    // Image available in actual exam
   },
   {
     id: 18,
@@ -292,8 +299,7 @@ export const section1Questions: Question[] = [
     correctAnswer: "A",
     explanation: "The t(15;17) translocation is pathognomonic for acute promyelocytic leukemia (APL), a subtype of AML. This translocation creates the PML-RARA fusion gene, which blocks myeloid differentiation at the promyelocyte stage.\n\nAll-trans retinoic acid (ATRA) is the specific treatment for APL:\n• ATRA binds to the RARA portion of the fusion protein\n• Overcomes the differentiation block\n• Causes promyelocytes to mature into neutrophils\n• Combined with arsenic trioxide for enhanced efficacy\n\nAPL is considered a medical emergency due to high risk of DIC. ATRA should be started immediately upon suspicion, even before genetic confirmation.",
     educationalObjective: "APL with t(15;17) is treated with all-trans retinoic acid (ATRA), which targets the PML-RARA fusion protein and promotes differentiation of leukemic promyelocytes.",
-    image: "https://images.unsplash.com/photo-1579154341184-cdf0976c6104?w=600&h=400&fit=crop",
-    imageCaption: "Bone marrow biopsy showing promyelocytic blasts"
+    // Image available in actual exam
   },
   {
     id: 21,
@@ -392,8 +398,7 @@ export const section1Questions: Question[] = [
     correctAnswer: "C",
     explanation: "This patient has Stanford Type A aortic dissection (involving the ascending aorta), a surgical emergency. However, immediate medical management is critical to prevent propagation while preparing for surgery.\n\nInitial medical management:\n1. IV beta-blocker FIRST (esmolol, labetalol)\n   • Reduces heart rate (target <60/min)\n   • Decreases dP/dt (force of ventricular contraction)\n   • Reduces shear stress on the aortic wall\n\n2. THEN add vasodilator if needed (nitroprusside)\n   • Target SBP 100-120 mm Hg\n   • Never given before beta-blockade (reflex tachycardia increases shear stress)\n\nEmergent surgical repair is indicated for Type A dissections but should not delay initial blood pressure and heart rate control.",
     educationalObjective: "Type A aortic dissection requires emergent surgical repair, but initial management includes IV beta-blocker followed by vasodilator to reduce aortic shear stress. Beta-blocker must be given before vasodilator.",
-    image: "https://images.unsplash.com/photo-1559757175-5700dde675bc?w=600&h=400&fit=crop",
-    imageCaption: "CT angiography showing aortic dissection"
+    // Image available in actual exam
   },
   {
     id: 28,
@@ -450,8 +455,7 @@ export const section1Questions: Question[] = [
     correctAnswer: "D",
     explanation: "This patient has systemic lupus erythematosus (SLE) with renal involvement (lupus nephritis). Class IV diffuse lupus nephritis has the worst prognosis.\n\nLupus nephritis classification:\n• Class I: Minimal mesangial - normal light microscopy, deposits on EM\n• Class II: Mesangial proliferative - mesangial deposits\n• Class III: Focal (<50% glomeruli) - segmental involvement\n• Class IV: Diffuse (≥50% glomeruli) - worst prognosis\n• Class V: Membranous - subepithelial deposits, nephrotic syndrome\n• Class VI: Advanced sclerotic - >90% glomerulosclerosis\n\nClass IV requires aggressive immunosuppression with high-dose corticosteroids and cyclophosphamide or mycophenolate mofetil.",
     educationalObjective: "Class IV diffuse lupus nephritis has the worst prognosis, involving ≥50% of glomeruli. It requires aggressive immunosuppressive therapy with corticosteroids and cyclophosphamide or mycophenolate.",
-    image: "https://images.unsplash.com/photo-1576086213369-97a306d36557?w=600&h=400&fit=crop",
-    imageCaption: "Renal biopsy showing diffuse proliferative changes"
+    // Image available in actual exam
   },
   {
     id: 32,
@@ -508,8 +512,7 @@ export const section1Questions: Question[] = [
     correctAnswer: "D",
     explanation: "The cytologic findings described are pathognomonic for papillary thyroid carcinoma (PTC), the most common thyroid malignancy.\n\nHistologic features of PTC:\n• Nuclear grooves (longitudinal)\n• Intranuclear inclusions (cytoplasmic pseudoinclusions)\n• \"Orphan Annie eye\" nuclei (clear, empty-appearing)\n• Psammoma bodies (calcified concentric laminations)\n• Papillary architecture (though not required for diagnosis)\n\nPTC characteristics:\n• Most common thyroid cancer (80% of cases)\n• Excellent prognosis (>95% 10-year survival)\n• Spreads via lymphatics (cervical lymph nodes)\n• Associated with radiation exposure and RET/PTC rearrangements\n• Treatment: Thyroidectomy ± radioactive iodine ablation",
     educationalObjective: "Papillary thyroid carcinoma is diagnosed by characteristic nuclear features: nuclear grooves, intranuclear inclusions, and \"Orphan Annie eye\" nuclei. It is the most common thyroid cancer with excellent prognosis.",
-    image: "https://images.unsplash.com/photo-1579165466741-7f35e4755183?w=600&h=400&fit=crop",
-    imageCaption: "FNA showing papillary thyroid carcinoma cells"
+    // Image available in actual exam
   },
   {
     id: 36,
@@ -636,8 +639,7 @@ export const section1Questions: Question[] = [
     correctAnswer: "C",
     explanation: "This patient has idiopathic pulmonary fibrosis (IPF), the most common idiopathic interstitial pneumonia.\n\nCharacteristic features:\n• Age >50, progressive dyspnea and dry cough\n• Bibasilar inspiratory crackles (\"velcro\" crackles)\n• HRCT: Usual interstitial pneumonia (UIP) pattern - basilar predominant reticular opacities, honeycombing, traction bronchiectasis\n• Restrictive PFTs: Decreased FVC, normal FEV1/FVC ratio, decreased DLCO\n\nPathology:\n• Temporal and spatial heterogeneity\n• Fibroblast foci (active fibrosis)\n• Honeycombing (end-stage fibrosis)\n\nPrognosis is poor (median survival 3-5 years). Treatment options include pirfenidone or nintedanib to slow progression.",
     educationalObjective: "IPF presents in older adults with progressive dyspnea, bibasilar crackles, restrictive PFTs, and UIP pattern on HRCT (basilar honeycombing and reticular opacities).",
-    image: "https://images.unsplash.com/photo-1516549655169-df83a0774514?w=600&h=400&fit=crop",
-    imageCaption: "HRCT showing basilar honeycombing pattern"
+    // Image available in actual exam
   },
   {
     id: 45,
