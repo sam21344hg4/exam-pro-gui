@@ -1,14 +1,53 @@
 import { Question } from "./types";
 
-// Import exam images
-import q1Image from "@/assets/exam-images/page_1.jpg";
-import q6Image from "@/assets/exam-images/page_11.jpg";
-import q7Image from "@/assets/exam-images/page_13.jpg";
-import q8Image from "@/assets/exam-images/page_18.jpg";
-import q9Image from "@/assets/exam-images/page_16.jpg";
-import q14Image from "@/assets/exam-images/page_28.jpg";
-import q21Image from "@/assets/exam-images/page_41.jpg";
-import q23Image from "@/assets/exam-images/page_45.jpg";
+// Import exam images - NBME 26
+// Section 1 images
+import q1Image from "@/assets/exam-images/page_1.jpg"; // Serum electrophoresis patterns
+import q6Image from "@/assets/exam-images/page_11.jpg"; // GI contrast (jejunum/ileum)
+import q8Image from "@/assets/exam-images/page_13.jpg"; // Lab values (anemia)
+import q8Image2 from "@/assets/exam-images/page_13_3.jpg"; // Blood smear (spherocytes)
+import plasmOsmImage from "@/assets/exam-images/page_16_2.jpg"; // Plasma osmolality graph
+import aorticPressureImage from "@/assets/exam-images/page_18.jpg"; // Aortic/LV pressure curves
+import q14Image from "@/assets/exam-images/page_28.jpg"; // ECG with labeled points
+import brainStemImage from "@/assets/exam-images/page_41.jpg"; // Brain stem
+import q23Image from "@/assets/exam-images/page_45.jpg"; // Fasting glucose distribution
+
+// Additional images from later pages
+import labValuesImage from "@/assets/exam-images/page_64.jpg"; // Lab values table
+import bloodSmearImage from "@/assets/exam-images/page_66.jpg"; // Blood smear cytology
+import chestXrayImage from "@/assets/exam-images/page_85.jpg"; // Chest X-ray
+import serumLabsImage from "@/assets/exam-images/page_93.jpg"; // Serum/urine labs
+import brainMriImage from "@/assets/exam-images/page_111.jpg"; // Brain MRI labeled
+import histologyImage1 from "@/assets/exam-images/page_113.jpg"; // Connective tissue histology
+import histologyImage2 from "@/assets/exam-images/page_115.jpg"; // Histology
+import vertebralCtImage from "@/assets/exam-images/page_117.jpg"; // Vertebral CT
+import smoothMuscleImage from "@/assets/exam-images/page_119.jpg"; // Smooth muscle tension
+import menstrualCycleImage from "@/assets/exam-images/page_123.jpg"; // Menstrual cycle diagram
+import arachidonicPathwayImage from "@/assets/exam-images/page_132.jpg"; // Arachidonic acid pathway
+import acneImage from "@/assets/exam-images/page_153.jpg"; // Facial acne
+import renalHistologyImage from "@/assets/exam-images/page_157.jpg"; // Renal histology
+import abdominalCtImage from "@/assets/exam-images/page_178.jpg"; // Abdominal CT
+import dermatomyositisImage from "@/assets/exam-images/page_187.jpg"; // Tongue/fingers
+import cardiacSpecimenImage from "@/assets/exam-images/page_199.jpg"; // Gross cardiac
+import heartSoundsImage from "@/assets/exam-images/page_205.jpg"; // Heart sounds S1/S2
+import brainAnatomyImage from "@/assets/exam-images/page_207.jpg"; // Brain stem anatomy
+import epidemiologyChartImage from "@/assets/exam-images/page_224.jpg"; // 3D epidemiology chart
+import aminoAcidImage from "@/assets/exam-images/page_228.jpg"; // Amino acid sequence
+import thyroidHistologyImage from "@/assets/exam-images/page_250.jpg"; // Thyroid histology
+import electronMicroscopyImage from "@/assets/exam-images/page_260.jpg"; // EM Golgi
+import codonSequenceImage from "@/assets/exam-images/page_268.jpg"; // DNA/RNA codons
+import skinRashBackImage from "@/assets/exam-images/page_280.jpg"; // Skin rash on back
+import spinalCordDiagramImage from "@/assets/exam-images/page_282.jpg"; // Spinal cord diagram
+import handXrayImage from "@/assets/exam-images/page_286.jpg"; // Hand X-ray
+import normalBloodSmearImage from "@/assets/exam-images/page_302.jpg"; // Normal blood smear
+import ecgStripImage from "@/assets/exam-images/page_314.jpg"; // ECG strip
+import kidneySpecimenImage from "@/assets/exam-images/page_328.jpg"; // Gross kidney
+import brainSurfaceImage from "@/assets/exam-images/page_333.jpg"; // Brain surface anatomy
+import bmiLeptinImage from "@/assets/exam-images/page_338.jpg"; // BMI/Leptin chart
+import spinalCordHistologyImage from "@/assets/exam-images/page_356.jpg"; // Spinal cord histology
+import diaperRashImage from "@/assets/exam-images/page_360.jpg"; // Candida diaper rash
+import imagingWithArrowsImage from "@/assets/exam-images/page_370.jpg"; // CT/X-ray with arrows
+import psoriasisImage from "@/assets/exam-images/page_390.jpg"; // Psoriasis-like lesions
 
 export const section1Questions: Question[] = [
   {
@@ -184,7 +223,8 @@ export const section1Questions: Question[] = [
     correctAnswer: "D",
     explanation: "The biopsy findings describe small cell lung carcinoma (SCLC): small round blue cells, scant cytoplasm, nuclear molding, and neuroendocrine markers (chromogranin, synaptophysin). SCLC is most commonly associated with SIADH.\n\nSCLC cells can produce ectopic ADH (vasopressin), leading to:\n• Euvolemic hyponatremia\n• Low serum osmolality\n• Inappropriately concentrated urine\n• Urine sodium >20 mEq/L\n\nOther paraneoplastic syndromes associated with SCLC include:\n• Cushing syndrome (ectopic ACTH)\n• Lambert-Eaton myasthenic syndrome (anti-voltage-gated calcium channel antibodies)",
     educationalObjective: "Small cell lung carcinoma is a neuroendocrine tumor commonly associated with paraneoplastic SIADH due to ectopic ADH production, causing euvolemic hyponatremia.",
-    // Image available in actual exam
+    image: chestXrayImage,
+    imageCaption: "Chest imaging"
   },
   {
     id: 13,
@@ -555,6 +595,8 @@ export const section1Questions: Question[] = [
     correctAnswer: "A",
     explanation: "This patient has dermatomyositis (DM), an inflammatory myopathy characterized by proximal muscle weakness and distinctive skin findings (heliotrope rash on eyelids, Gottron papules over knuckles).\n\nDermatomyositis has a strong association with malignancy:\n• ~15-30% of adult DM patients have underlying cancer\n• Risk highest in first 1-2 years after diagnosis\n• Common cancers: ovarian, lung, pancreatic, gastric, colorectal\n\nAge-appropriate cancer screening is essential:\n• CT of chest/abdomen/pelvis\n• Mammography and Pap smear in women\n• Colonoscopy if age-appropriate\n• Consider CA-125, transvaginal ultrasound (ovarian cancer)\n\nEMG and muscle biopsy confirm diagnosis but cancer screening affects mortality most.",
     educationalObjective: "Dermatomyositis has a strong association with malignancy (15-30%). Age-appropriate cancer screening is essential in all adult patients with new-onset dermatomyositis.",
+    image: dermatomyositisImage,
+    imageCaption: "Clinical findings in dermatomyositis"
   },
   {
     id: 39,
@@ -639,7 +681,8 @@ export const section1Questions: Question[] = [
     correctAnswer: "C",
     explanation: "This patient has idiopathic pulmonary fibrosis (IPF), the most common idiopathic interstitial pneumonia.\n\nCharacteristic features:\n• Age >50, progressive dyspnea and dry cough\n• Bibasilar inspiratory crackles (\"velcro\" crackles)\n• HRCT: Usual interstitial pneumonia (UIP) pattern - basilar predominant reticular opacities, honeycombing, traction bronchiectasis\n• Restrictive PFTs: Decreased FVC, normal FEV1/FVC ratio, decreased DLCO\n\nPathology:\n• Temporal and spatial heterogeneity\n• Fibroblast foci (active fibrosis)\n• Honeycombing (end-stage fibrosis)\n\nPrognosis is poor (median survival 3-5 years). Treatment options include pirfenidone or nintedanib to slow progression.",
     educationalObjective: "IPF presents in older adults with progressive dyspnea, bibasilar crackles, restrictive PFTs, and UIP pattern on HRCT (basilar honeycombing and reticular opacities).",
-    // Image available in actual exam
+    image: imagingWithArrowsImage,
+    imageCaption: "Chest imaging showing pulmonary findings"
   },
   {
     id: 45,
