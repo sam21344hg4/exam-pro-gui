@@ -19,10 +19,24 @@ const Index = () => {
   const [showExplanation, setShowExplanation] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(selectedExam.timeLimit * 60);
   const [timeSpent, setTimeSpent] = useState(0);
+  
+  // New state for toolbar features
+  const [notes, setNotes] = useState("");
+  const [isDark, setIsDark] = useState(false);
+  const [fontSize, setFontSize] = useState(18);
 
   const questions = selectedExam.questions;
   const question = questions.find((q) => q.id === currentQuestion) || questions[0];
   const totalQuestions = questions.length;
+
+  // Dark mode effect
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [isDark]);
 
   // Timer effect
   useEffect(() => {
@@ -69,6 +83,7 @@ const Index = () => {
     setShowExplanation(false);
     setTimeRemaining(selectedExam.timeLimit * 60);
     setTimeSpent(0);
+    setNotes("");
   }, [selectedExam]);
 
   const handlePractice = useCallback(() => {
@@ -77,8 +92,9 @@ const Index = () => {
     setAnswers({});
     setFlagged(new Set());
     setShowExplanation(false);
-    setTimeRemaining(999 * 60); // Unlimited time
+    setTimeRemaining(999 * 60);
     setTimeSpent(0);
+    setNotes("");
   }, []);
 
   const handleSelectAnswer = useCallback((answer: string) => {
@@ -144,12 +160,21 @@ const Index = () => {
     setShowExplanation(false);
     setTimeRemaining(selectedExam.timeLimit * 60);
     setTimeSpent(0);
+    setNotes("");
   }, [selectedExam]);
 
   const handleReview = useCallback(() => {
     setMode("review");
     setCurrentQuestion(1);
     setShowExplanation(true);
+  }, []);
+
+  const handleEndBlock = useCallback(() => {
+    setMode("complete");
+  }, []);
+
+  const handleToggleTheme = useCallback(() => {
+    setIsDark((prev) => !prev);
   }, []);
 
   // Start Screen
@@ -194,6 +219,14 @@ const Index = () => {
         onFlag={handleFlag}
         isFlagged={flagged.has(currentQuestion)}
         answeredCount={answeredCount}
+        notes={notes}
+        onNotesChange={setNotes}
+        isDark={isDark}
+        onToggleTheme={handleToggleTheme}
+        fontSize={fontSize}
+        onFontSizeChange={setFontSize}
+        onEndBlock={handleEndBlock}
+        showTimer={mode === "timed"}
       />
 
       <main className="container px-4 py-8 md:py-12">
@@ -207,6 +240,7 @@ const Index = () => {
                 selectedAnswer={answers[currentQuestion] || null}
                 showExplanation={showExplanation || mode === "review"}
                 onSelectAnswer={handleSelectAnswer}
+                fontSize={fontSize}
               />
             </AnimatePresence>
 
@@ -250,7 +284,7 @@ const Index = () => {
 
           {/* Sidebar */}
           <div className="lg:w-72 shrink-0">
-            <div className="sticky top-24">
+            <div className="sticky top-20">
               <QuestionNav
                 totalQuestions={totalQuestions}
                 currentQuestion={currentQuestion}

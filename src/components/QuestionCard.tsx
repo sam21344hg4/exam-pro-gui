@@ -7,6 +7,7 @@ interface QuestionCardProps {
   selectedAnswer: string | null;
   showExplanation: boolean;
   onSelectAnswer: (answer: string) => void;
+  fontSize: number;
 }
 
 export const QuestionCard = ({
@@ -14,6 +15,7 @@ export const QuestionCard = ({
   selectedAnswer,
   showExplanation,
   onSelectAnswer,
+  fontSize,
 }: QuestionCardProps) => {
   const isAnswered = selectedAnswer !== null;
   const isCorrect = selectedAnswer === question.correctAnswer;
@@ -33,7 +35,10 @@ export const QuestionCard = ({
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
             {question.id}
           </span>
-          <p className="font-clinical text-lg leading-relaxed text-foreground md:text-xl">
+          <p 
+            className="font-clinical leading-relaxed text-foreground"
+            style={{ fontSize: `${fontSize}px` }}
+          >
             {question.stem}
           </p>
         </div>
@@ -56,6 +61,7 @@ export const QuestionCard = ({
               showResult={showExplanation}
               onClick={() => onSelectAnswer(option.label)}
               disabled={showExplanation}
+              fontSize={fontSize}
             />
           </motion.div>
         ))}
@@ -96,7 +102,10 @@ export const QuestionCard = ({
             <div className="space-y-4">
               <div>
                 <h4 className="font-semibold text-foreground mb-2">Explanation</h4>
-                <p className="font-clinical text-foreground/90 leading-relaxed whitespace-pre-line">
+                <p 
+                  className="font-clinical text-foreground/90 leading-relaxed whitespace-pre-line"
+                  style={{ fontSize: `${fontSize - 2}px` }}
+                >
                   {question.explanation}
                 </p>
               </div>
@@ -106,7 +115,10 @@ export const QuestionCard = ({
                   <span className="h-1.5 w-1.5 rounded-full bg-secondary" />
                   Educational Objective
                 </h4>
-                <p className="font-clinical text-foreground/80 leading-relaxed">
+                <p 
+                  className="font-clinical text-foreground/80 leading-relaxed"
+                  style={{ fontSize: `${fontSize - 2}px` }}
+                >
                   {question.educationalObjective}
                 </p>
               </div>

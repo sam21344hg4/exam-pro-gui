@@ -9,6 +9,7 @@ interface OptionButtonProps {
   showResult: boolean;
   onClick: () => void;
   disabled?: boolean;
+  fontSize?: number;
 }
 
 export const OptionButton = ({
@@ -19,6 +20,7 @@ export const OptionButton = ({
   showResult,
   onClick,
   disabled,
+  fontSize = 18,
 }: OptionButtonProps) => {
   const getBackgroundClass = () => {
     if (!showResult) {
@@ -78,7 +80,10 @@ export const OptionButton = ({
           label
         )}
       </span>
-      <span className="font-clinical text-left text-base md:text-lg text-foreground">
+      <span 
+        className="font-clinical text-left text-foreground"
+        style={{ fontSize: `${fontSize}px` }}
+      >
         {text}
       </span>
     </button>
