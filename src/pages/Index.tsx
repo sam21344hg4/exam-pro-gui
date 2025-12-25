@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { AnimatePresence } from "framer-motion";
 import { availableExams, ExamData } from "@/data/exams";
 import { StartScreen } from "@/components/StartScreen";
@@ -10,6 +10,10 @@ import { ExamSummary } from "@/components/ExamSummary";
 
 type ExamMode = "start" | "timed" | "practice" | "complete" | "review";
 
+// Section configuration - 50 questions per section, 1 hour each
+const QUESTIONS_PER_SECTION = 50;
+const SECTION_TIME_LIMIT = 60 * 60; // 1 hour in seconds
+
 const Index = () => {
   const [selectedExam, setSelectedExam] = useState<ExamData>(availableExams[0]);
   const [mode, setMode] = useState<ExamMode>("start");
@@ -17,8 +21,12 @@ const Index = () => {
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [flagged, setFlagged] = useState<Set<number>>(new Set());
   const [showExplanation, setShowExplanation] = useState(false);
-  const [timeRemaining, setTimeRemaining] = useState(selectedExam.timeLimit * 60);
+  const [timeRemaining, setTimeRemaining] = useState(SECTION_TIME_LIMIT);
   const [timeSpent, setTimeSpent] = useState(0);
+  
+  // Section state
+  const [currentSection, setCurrentSection] = useState(1);
+  const [completedSections, setCompletedSections] = useState<Set<number>>(new Set());
   
   // Toolbar features state
   const [notes, setNotes] = useState("");
@@ -29,8 +37,25 @@ const Index = () => {
   const [strikethroughs, setStrikethroughs] = useState<Set<string>>(new Set());
 
   const questions = selectedExam.questions;
-  const question = questions.find((q) => q.id === currentQuestion) || questions[0];
   const totalQuestions = questions.length;
+  const totalSections = Math.ceil(totalQuestions / QUESTIONS_PER_SECTION);
+  
+  // Calculate section boundaries
+  const sectionInfo = useMemo(() => {
+    const sectionStart = (currentSection - 1) * QUESTIONS_PER_SECTION + 1;
+    const sectionEnd = Math.min(currentSection * QUESTIONS_PER_SECTION, totalQuestions);
+    return { sectionStart, sectionEnd, questionsInSection: sectionEnd - sectionStart + 1 };
+  }, [currentSection, totalQuestions]);
+  
+  // Get current question data
+  const question = questions.find((q) => q.id === currentQuestion) || questions[0];
+  
+  // Check if current question is within allowed section (for timed mode)
+  const isQuestionAccessible = useCallback((questionNum: number) => {
+    if (mode !== "timed") return true;
+    const questionSection = Math.ceil(questionNum / QUESTIONS_PER_SECTION);
+    return questionSection === currentSection || completedSections.has(questionSection);
+  }, [mode, currentSection, completedSections]);
 
   // Dark mode effect
   useEffect(() => {
@@ -41,14 +66,19 @@ const Index = () => {
     }
   }, [isDark]);
 
-  // Timer effect
+  // Timer effect - per section in timed mode
   useEffect(() => {
     if (mode !== "timed") return;
 
     const interval = setInterval(() => {
       setTimeRemaining((prev) => {
         if (prev <= 1) {
-          setMode("complete");
+          // Section time expired - auto-complete section
+          if (currentSection < totalSections) {
+            handleEndSection();
+          } else {
+            setMode("complete");
+          }
           return 0;
         }
         return prev - 1;
@@ -57,7 +87,7 @@ const Index = () => {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [mode]);
+  }, [mode, currentSection, totalSections]);
 
   // Track time in practice mode
   useEffect(() => {
@@ -74,25 +104,29 @@ const Index = () => {
     const exam = availableExams.find((e) => e.id === examId);
     if (exam) {
       setSelectedExam(exam);
-      setTimeRemaining(exam.timeLimit * 60);
+      setTimeRemaining(SECTION_TIME_LIMIT);
     }
   }, []);
 
   const handleStart = useCallback(() => {
     setMode("timed");
     setCurrentQuestion(1);
+    setCurrentSection(1);
+    setCompletedSections(new Set());
     setAnswers({});
     setFlagged(new Set());
     setShowExplanation(false);
-    setTimeRemaining(selectedExam.timeLimit * 60);
+    setTimeRemaining(SECTION_TIME_LIMIT);
     setTimeSpent(0);
     setNotes("");
     setStrikethroughs(new Set());
-  }, [selectedExam]);
+  }, []);
 
   const handlePractice = useCallback(() => {
     setMode("practice");
     setCurrentQuestion(1);
+    setCurrentSection(1);
+    setCompletedSections(new Set());
     setAnswers({});
     setFlagged(new Set());
     setShowExplanation(false);
@@ -101,6 +135,21 @@ const Index = () => {
     setNotes("");
     setStrikethroughs(new Set());
   }, []);
+  
+  // End current section and move to next
+  const handleEndSection = useCallback(() => {
+    setCompletedSections((prev) => new Set([...prev, currentSection]));
+    
+    if (currentSection < totalSections) {
+      const nextSection = currentSection + 1;
+      setCurrentSection(nextSection);
+      setCurrentQuestion((nextSection - 1) * QUESTIONS_PER_SECTION + 1);
+      setTimeRemaining(SECTION_TIME_LIMIT);
+      setShowExplanation(false);
+    } else {
+      setMode("complete");
+    }
+  }, [currentSection, totalSections]);
 
   const handleSelectAnswer = useCallback((answer: string) => {
     if (showExplanation) return;
@@ -116,20 +165,37 @@ const Index = () => {
   }, []);
 
   const handleNext = useCallback(() => {
-    if (currentQuestion < totalQuestions) {
-      setCurrentQuestion((prev) => prev + 1);
-      setShowExplanation(false);
+    // In timed mode, can only navigate within current section
+    if (mode === "timed") {
+      if (currentQuestion < sectionInfo.sectionEnd) {
+        setCurrentQuestion((prev) => prev + 1);
+        setShowExplanation(false);
+      }
+      // At section end, user must use End Block to proceed
     } else {
-      setMode("complete");
+      if (currentQuestion < totalQuestions) {
+        setCurrentQuestion((prev) => prev + 1);
+        setShowExplanation(false);
+      } else {
+        setMode("complete");
+      }
     }
-  }, [currentQuestion, totalQuestions]);
+  }, [currentQuestion, totalQuestions, mode, sectionInfo.sectionEnd]);
 
   const handlePrevious = useCallback(() => {
-    if (currentQuestion > 1) {
-      setCurrentQuestion((prev) => prev - 1);
-      setShowExplanation(false);
+    // In timed mode, can only navigate within current section
+    if (mode === "timed") {
+      if (currentQuestion > sectionInfo.sectionStart) {
+        setCurrentQuestion((prev) => prev - 1);
+        setShowExplanation(false);
+      }
+    } else {
+      if (currentQuestion > 1) {
+        setCurrentQuestion((prev) => prev - 1);
+        setShowExplanation(false);
+      }
     }
-  }, [currentQuestion]);
+  }, [currentQuestion, mode, sectionInfo.sectionStart]);
 
   const handleFlag = useCallback(() => {
     setFlagged((prev) => {
@@ -144,9 +210,17 @@ const Index = () => {
   }, [currentQuestion]);
 
   const handleNavigate = useCallback((questionNumber: number) => {
-    setCurrentQuestion(questionNumber);
-    setShowExplanation(false);
-  }, []);
+    // In timed mode, only allow navigation within current section
+    if (mode === "timed") {
+      if (questionNumber >= sectionInfo.sectionStart && questionNumber <= sectionInfo.sectionEnd) {
+        setCurrentQuestion(questionNumber);
+        setShowExplanation(false);
+      }
+    } else {
+      setCurrentQuestion(questionNumber);
+      setShowExplanation(false);
+    }
+  }, [mode, sectionInfo.sectionStart, sectionInfo.sectionEnd]);
 
   const handleReset = useCallback(() => {
     setAnswers((prev) => {
@@ -160,14 +234,16 @@ const Index = () => {
   const handleRestart = useCallback(() => {
     setMode("start");
     setCurrentQuestion(1);
+    setCurrentSection(1);
+    setCompletedSections(new Set());
     setAnswers({});
     setFlagged(new Set());
     setShowExplanation(false);
-    setTimeRemaining(selectedExam.timeLimit * 60);
+    setTimeRemaining(SECTION_TIME_LIMIT);
     setTimeSpent(0);
     setNotes("");
     setStrikethroughs(new Set());
-  }, [selectedExam]);
+  }, []);
 
   const handleReview = useCallback(() => {
     setMode("review");
@@ -176,8 +252,12 @@ const Index = () => {
   }, []);
 
   const handleEndBlock = useCallback(() => {
-    setMode("complete");
-  }, []);
+    if (mode === "timed" && currentSection < totalSections) {
+      handleEndSection();
+    } else {
+      setMode("complete");
+    }
+  }, [mode, currentSection, totalSections, handleEndSection]);
 
   const handleToggleTheme = useCallback(() => {
     setIsDark((prev) => !prev);
@@ -246,6 +326,10 @@ const Index = () => {
         onFontSizeChange={setFontSize}
         onEndBlock={handleEndBlock}
         showTimer={mode === "timed"}
+        currentSection={currentSection}
+        totalSections={totalSections}
+        sectionStart={sectionInfo.sectionStart}
+        sectionEnd={sectionInfo.sectionEnd}
       />
 
       <main className="container px-4 py-8 md:py-12">
@@ -312,6 +396,11 @@ const Index = () => {
                 answers={answers}
                 flagged={flagged}
                 onNavigate={handleNavigate}
+                sectionStart={sectionInfo.sectionStart}
+                sectionEnd={sectionInfo.sectionEnd}
+                currentSection={currentSection}
+                totalSections={totalSections}
+                isTimed={mode === "timed"}
               />
             </div>
           </div>
