@@ -39,12 +39,31 @@ export const QuestionCard = ({
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
             {question.id}
           </span>
-          <p 
-            className="font-clinical leading-relaxed text-foreground"
-            style={{ fontSize: `${fontSize}px` }}
-          >
-            {question.stem}
-          </p>
+          <div className="flex-1">
+            <p 
+              className="font-clinical leading-relaxed text-foreground"
+              style={{ fontSize: `${fontSize}px` }}
+            >
+              {question.stem}
+            </p>
+            
+            {/* Question Image */}
+            {question.image && (
+              <div className="mt-4">
+                <img 
+                  src={question.image} 
+                  alt={question.imageCaption || "Question image"} 
+                  className="max-w-full h-auto rounded-lg border border-border shadow-sm"
+                  style={{ maxHeight: '400px', objectFit: 'contain' }}
+                />
+                {question.imageCaption && (
+                  <p className="mt-2 text-sm text-muted-foreground italic text-center">
+                    {question.imageCaption}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

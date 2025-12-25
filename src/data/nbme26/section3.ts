@@ -13,5 +13,4 @@ export const section3Questions: Question[] = Array.from({ length: 50 }, (_, i) =
   correctAnswer: ["A", "B", "C", "D", "E"][i % 5],
   explanation: `This is a placeholder question for Section 3, Question ${101 + i}. The answer reflects appropriate clinical management.`,
   educationalObjective: `Educational objective for question ${101 + i} - understanding pathophysiology and treatment.`,
-  ...(i % 7 === 0 ? { image: "https://images.unsplash.com/photo-1576086213369-97a306d36557?w=600&h=400&fit=crop", imageCaption: "Diagnostic image for question " + (101 + i) } : {})
 }));
