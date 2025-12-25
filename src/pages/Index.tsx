@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { AnimatePresence } from "framer-motion";
-import { examQuestions, examInfo } from "@/data/examQuestions";
+import { availableExams, ExamData } from "@/data/exams";
 import { StartScreen } from "@/components/StartScreen";
 import { ExamHeader } from "@/components/ExamHeader";
 import { QuestionCard } from "@/components/QuestionCard";
@@ -11,16 +11,18 @@ import { ExamSummary } from "@/components/ExamSummary";
 type ExamMode = "start" | "timed" | "practice" | "complete" | "review";
 
 const Index = () => {
+  const [selectedExam, setSelectedExam] = useState<ExamData>(availableExams[0]);
   const [mode, setMode] = useState<ExamMode>("start");
   const [currentQuestion, setCurrentQuestion] = useState(1);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [flagged, setFlagged] = useState<Set<number>>(new Set());
   const [showExplanation, setShowExplanation] = useState(false);
-  const [timeRemaining, setTimeRemaining] = useState(examInfo.timeLimit * 60);
+  const [timeRemaining, setTimeRemaining] = useState(selectedExam.timeLimit * 60);
   const [timeSpent, setTimeSpent] = useState(0);
 
-  const question = examQuestions.find((q) => q.id === currentQuestion) || examQuestions[0];
-  const totalQuestions = examQuestions.length;
+  const questions = selectedExam.questions;
+  const question = questions.find((q) => q.id === currentQuestion) || questions[0];
+  const totalQuestions = questions.length;
 
   // Timer effect
   useEffect(() => {
@@ -51,15 +53,23 @@ const Index = () => {
     return () => clearInterval(interval);
   }, [mode]);
 
+  const handleSelectExam = useCallback((examId: string) => {
+    const exam = availableExams.find((e) => e.id === examId);
+    if (exam) {
+      setSelectedExam(exam);
+      setTimeRemaining(exam.timeLimit * 60);
+    }
+  }, []);
+
   const handleStart = useCallback(() => {
     setMode("timed");
     setCurrentQuestion(1);
     setAnswers({});
     setFlagged(new Set());
     setShowExplanation(false);
-    setTimeRemaining(examInfo.timeLimit * 60);
+    setTimeRemaining(selectedExam.timeLimit * 60);
     setTimeSpent(0);
-  }, []);
+  }, [selectedExam]);
 
   const handlePractice = useCallback(() => {
     setMode("practice");
@@ -132,9 +142,9 @@ const Index = () => {
     setAnswers({});
     setFlagged(new Set());
     setShowExplanation(false);
-    setTimeRemaining(examInfo.timeLimit * 60);
+    setTimeRemaining(selectedExam.timeLimit * 60);
     setTimeSpent(0);
-  }, []);
+  }, [selectedExam]);
 
   const handleReview = useCallback(() => {
     setMode("review");
@@ -146,10 +156,11 @@ const Index = () => {
   if (mode === "start") {
     return (
       <StartScreen
+        exams={availableExams}
+        selectedExam={selectedExam}
+        onSelectExam={handleSelectExam}
         onStart={handleStart}
         onPractice={handlePractice}
-        totalQuestions={totalQuestions}
-        timeLimit={examInfo.timeLimit}
       />
     );
   }
@@ -159,7 +170,7 @@ const Index = () => {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-background">
         <ExamSummary
-          questions={examQuestions}
+          questions={questions}
           answers={answers}
           timeSpent={timeSpent}
           onRestart={handleRestart}
