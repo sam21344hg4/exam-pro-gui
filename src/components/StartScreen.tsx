@@ -1,19 +1,29 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Clock, FileText, Play, Sparkles } from "lucide-react";
+import { BookOpen, Clock, FileText, Play, Sparkles, ChevronDown } from "lucide-react";
+import { ExamData } from "@/data/exams";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface StartScreenProps {
+  exams: ExamData[];
+  selectedExam: ExamData;
+  onSelectExam: (examId: string) => void;
   onStart: () => void;
   onPractice: () => void;
-  totalQuestions: number;
-  timeLimit: number;
 }
 
 export const StartScreen = ({
+  exams,
+  selectedExam,
+  onSelectExam,
   onStart,
   onPractice,
-  totalQuestions,
-  timeLimit,
 }: StartScreenProps) => {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-background to-accent/20">
@@ -41,7 +51,7 @@ export const StartScreen = ({
             </motion.div>
             
             <h1 className="relative text-2xl md:text-3xl font-bold text-primary-foreground mb-2">
-              NBME 26
+              Medical Board Prep
             </h1>
             <p className="relative text-primary-foreground/80">
               Practice Examination
@@ -50,6 +60,30 @@ export const StartScreen = ({
 
           {/* Content */}
           <div className="p-8">
+            {/* Exam Selector */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25 }}
+              className="mb-6"
+            >
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Select Exam
+              </label>
+              <Select value={selectedExam.id} onValueChange={onSelectExam}>
+                <SelectTrigger className="w-full h-12 text-base">
+                  <SelectValue placeholder="Choose an exam" />
+                </SelectTrigger>
+                <SelectContent>
+                  {exams.map((exam) => (
+                    <SelectItem key={exam.id} value={exam.id}>
+                      {exam.title} - {exam.section}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </motion.div>
+
             {/* Stats */}
             <div className="grid grid-cols-2 gap-4 mb-8">
               <motion.div
@@ -62,7 +96,7 @@ export const StartScreen = ({
                   <FileText className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-foreground">{totalQuestions}</p>
+                  <p className="text-2xl font-bold text-foreground">{selectedExam.questions.length}</p>
                   <p className="text-sm text-muted-foreground">Questions</p>
                 </div>
               </motion.div>
@@ -77,7 +111,7 @@ export const StartScreen = ({
                   <Clock className="h-5 w-5 text-secondary" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-foreground">{timeLimit}</p>
+                  <p className="text-2xl font-bold text-foreground">{selectedExam.timeLimit}</p>
                   <p className="text-sm text-muted-foreground">Minutes</p>
                 </div>
               </motion.div>
