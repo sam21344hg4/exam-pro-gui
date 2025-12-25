@@ -1,18 +1,7 @@
 import { Question } from "./types";
 
 // Import exam images - NBME 26
-// Section 1 images
-import q1Image from "@/assets/exam-images/page_1.jpg"; // Serum electrophoresis patterns
-import q6Image from "@/assets/exam-images/page_11.jpg"; // GI contrast (jejunum/ileum)
-import q8Image from "@/assets/exam-images/page_13.jpg"; // Lab values (anemia)
-import q8Image2 from "@/assets/exam-images/page_13_3.jpg"; // Blood smear (spherocytes)
-import plasmOsmImage from "@/assets/exam-images/page_16_2.jpg"; // Plasma osmolality graph
-import aorticPressureImage from "@/assets/exam-images/page_18.jpg"; // Aortic/LV pressure curves
-import q14Image from "@/assets/exam-images/page_28.jpg"; // ECG with labeled points
-import brainStemImage from "@/assets/exam-images/page_41.jpg"; // Brain stem
-import q23Image from "@/assets/exam-images/page_45.jpg"; // Fasting glucose distribution
-
-// Additional images from later pages
+// Images from user uploads (available)
 import labValuesImage from "@/assets/exam-images/page_64.jpg"; // Lab values table
 import bloodSmearImage from "@/assets/exam-images/page_66.jpg"; // Blood smear cytology
 import chestXrayImage from "@/assets/exam-images/page_85.jpg"; // Chest X-ray
@@ -48,6 +37,9 @@ import spinalCordHistologyImage from "@/assets/exam-images/page_356.jpg"; // Spi
 import diaperRashImage from "@/assets/exam-images/page_360.jpg"; // Candida diaper rash
 import imagingWithArrowsImage from "@/assets/exam-images/page_370.jpg"; // CT/X-ray with arrows
 import psoriasisImage from "@/assets/exam-images/page_390.jpg"; // Psoriasis-like lesions
+import page13_2Image from "@/assets/exam-images/page_13_2.jpg"; // Additional page 13 image
+import page13_3Image from "@/assets/exam-images/page_13_3.jpg"; // Blood smear
+import page16_2Image from "@/assets/exam-images/page_16_2.jpg"; // Plasma osmolality graph
 
 export const section1Questions: Question[] = [
   {
@@ -63,8 +55,7 @@ export const section1Questions: Question[] = [
     correctAnswer: "D",
     explanation: "The electrophoresis pattern in Choice D demonstrates a deficiency of immunoglobulins. This young patient with Staphylococcus aureus bacteremia and a history of multiple prior infections has a clinical syndrome consistent with hypogammaglobulinemia (an immunodeficiency), which is reflected by the absence of the gamma fraction on serum protein electrophoresis.\n\nSerum protein electrophoresis separates major serum proteins by size and charge:\n\n• Albumin: Largest peak (left side of the diagram); migrates toward the positive pole (most negative charge).\n• Alpha fraction: Next peak; mainly α1-antitrypsin, thyroid-binding globulin, and transcortin.\n• Beta fraction: Contains transferrin, β-lipoproteins, and complement proteins.\n• Gamma fraction: Contains immunoglobulins (IgM, IgG, IgD, IgE). In hypogammaglobulinemia, there is a marked reduction or absence of this gamma spike.",
     educationalObjective: "Serum protein electrophoresis separates blood proteins based on charge and size. Abnormal electrophoresis patterns help identify disease states. The absence of a gamma spike indicates immunodeficiency due to hypogammaglobulinemia or agammaglobulinemia.",
-    image: q1Image,
-    imageCaption: "Serum protein electrophoresis patterns"
+    // Image pending: re-upload page_1.jpg
   },
   {
     id: 2,
@@ -137,8 +128,7 @@ export const section1Questions: Question[] = [
     correctAnswer: "D",
     explanation: "The jejunum (X) can be distinguished from the ileum (Y) by several characteristic features. The inner mucosal folds, or plicae circulares, are more prominent, more numerous, and taller in the jejunum compared to the ileum. This leads to an increased mucosal surface area and an associated feathered appearance after the administration of oral contrast material.\n\nThe jejunum also shows a larger caliber, thicker muscular walls, longer vasa rectae, and fewer arcades. The ileum is notable for the presence of Peyer patches and mucosal lymphoid follicles.",
     educationalObjective: "The jejunum possesses several characteristic features, including prominent plicae circulares, which lends the jejunum an increased mucosal surface area and a feathered appearance with oral contrast material.",
-    image: q6Image,
-    imageCaption: "GI tract contrast study showing jejunum (X) and ileum (Y)"
+    // Image pending: re-upload page_11.jpg
   },
   {
     id: 7,
