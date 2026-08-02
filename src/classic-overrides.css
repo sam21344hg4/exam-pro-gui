@@ -1,0 +1,70 @@
+main.container {
+  max-width: none !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 28px 22px 90px !important;
+}
+
+main.container > div {
+  display: block !important;
+}
+
+main.container > div > div:first-child {
+  width: 100% !important;
+}
+
+main.container > div > div:last-child {
+  display: none !important;
+}
+
+.classic-question-card ~ * {
+  display: none !important;
+}
+
+.classic-lab-slot {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+}
+
+.classic-lab-slot > button {
+  width: 92px;
+  height: 52px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  border: 0;
+  border-left: 1px solid rgba(255,255,255,.08);
+  border-radius: 0;
+  background: transparent;
+  color: #fff;
+  font-size: 11px;
+}
+
+.classic-lab-slot > button:hover {
+  background: rgba(255,255,255,.09);
+  color: #fff;
+}
+
+.classic-lab-slot svg {
+  width: 25px;
+  height: 25px;
+  padding: 5px;
+  border-radius: 50%;
+  background: linear-gradient(#aaa7df, #555399);
+  border: 1px solid #c9c8ed;
+  color: #082d58;
+}
+
+@media (max-width: 720px) {
+  main.container {
+    padding: 20px 14px 80px !important;
+  }
+
+  .classic-lab-slot > button {
+    width: auto;
+    font-size: 9px;
+  }
+}
