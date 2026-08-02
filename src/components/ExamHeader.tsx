@@ -1,5 +1,7 @@
 import { ChevronLeft, ChevronRight, CircleHelp, Flag, Pause, RotateCcw } from "lucide-react";
 import { LabValues } from "./LabValues";
+import { Calculator } from "./Calculator";
+import { Notes } from "./Notes";
 
 interface ExamHeaderProps {
   currentQuestion: number;
@@ -31,6 +33,8 @@ export const ExamHeader = ({
   onNext,
   onFlag,
   isFlagged,
+  notes,
+  onNotesChange,
   onEndBlock,
   showTimer,
   currentSection,
@@ -46,6 +50,14 @@ export const ExamHeader = ({
 
   const itemInSection = currentQuestion - sectionStart + 1;
   const itemsInSection = sectionEnd - sectionStart + 1;
+
+  const openReviewHelp = () => {
+    window.alert("Review shows marked, answered, and unanswered items. Use Previous and Next to move through the block.");
+  };
+
+  const openGeneralHelp = () => {
+    window.alert("Select one answer for each question. Use Mark to flag an item. Calculator, Lab Values, and Notes open in separate dialogs.");
+  };
 
   return (
     <>
@@ -85,12 +97,14 @@ export const ExamHeader = ({
           <span>Next</span>
         </button>
         <div className="classic-bottom-spacer" />
-        <div className="classic-lab-slot"><LabValues /></div>
-        <button className="classic-bottom-button" type="button" onClick={() => window.alert("Use the question navigator to review marked and unanswered items.")}>
+        <div className="classic-tool-slot"><Calculator /></div>
+        <div className="classic-tool-slot"><LabValues /></div>
+        <div className="classic-tool-slot"><Notes notes={notes} onNotesChange={onNotesChange} /></div>
+        <button className="classic-bottom-button" type="button" onClick={openReviewHelp}>
           <span className="classic-bottom-icon"><RotateCcw size={16} /></span>
           <span>Review</span>
         </button>
-        <button className="classic-bottom-button" type="button" onClick={() => window.alert("Select one answer for each question. Use Mark to flag an item for review.")}>
+        <button className="classic-bottom-button" type="button" onClick={openGeneralHelp}>
           <span className="classic-bottom-icon"><CircleHelp size={17} /></span>
           <span>Help</span>
         </button>
