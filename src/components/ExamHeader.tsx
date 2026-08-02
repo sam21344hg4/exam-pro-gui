@@ -1,4 +1,5 @@
-import { Flag } from "lucide-react";
+import { ChevronLeft, ChevronRight, CircleHelp, Flag, Pause, RotateCcw } from "lucide-react";
+import { LabValues } from "./LabValues";
 
 interface ExamHeaderProps {
   currentQuestion: number;
@@ -26,8 +27,11 @@ interface ExamHeaderProps {
 export const ExamHeader = ({
   currentQuestion,
   timeRemaining,
+  onPrevious,
+  onNext,
   onFlag,
   isFlagged,
+  onEndBlock,
   showTimer,
   currentSection,
   sectionStart,
@@ -44,30 +48,57 @@ export const ExamHeader = ({
   const itemsInSection = sectionEnd - sectionStart + 1;
 
   return (
-    <header className="classic-exam-header">
-      <div className="classic-header-left">
-        <div className="classic-section-line">
-          Exam Section {currentSection}: Item {itemInSection} of {itemsInSection}
+    <>
+      <header className="classic-exam-header">
+        <div className="classic-header-left">
+          <div className="classic-section-line">
+            Exam Section {currentSection}: Item {itemInSection} of {itemsInSection}
+          </div>
+          <button
+            type="button"
+            onClick={onFlag}
+            className={`classic-mark-button ${isFlagged ? "is-marked" : ""}`}
+            aria-pressed={isFlagged}
+          >
+            <span className="classic-mark-box" aria-hidden="true">
+              {isFlagged ? <Flag size={12} strokeWidth={3} /> : null}
+            </span>
+            Mark
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={onFlag}
-          className={`classic-mark-button ${isFlagged ? "is-marked" : ""}`}
-          aria-pressed={isFlagged}
-        >
-          <span className="classic-mark-box" aria-hidden="true">
-            {isFlagged ? <Flag size={12} strokeWidth={3} /> : null}
-          </span>
-          Mark
-        </button>
-      </div>
 
-      {showTimer && (
-        <div className="classic-time-block">
-          <div>Time Remaining:</div>
-          <strong>{formatTime(timeRemaining)}</strong>
-        </div>
-      )}
-    </header>
+        {showTimer && (
+          <div className="classic-time-block">
+            <div>Time Remaining:</div>
+            <strong>{formatTime(timeRemaining)}</strong>
+          </div>
+        )}
+      </header>
+
+      <nav className="classic-bottom-bar" aria-label="Exam navigation">
+        <button className="classic-bottom-button" onClick={onPrevious} disabled={currentQuestion === sectionStart}>
+          <span className="classic-bottom-icon"><ChevronLeft size={18} /></span>
+          <span>Previous</span>
+        </button>
+        <button className="classic-bottom-button" onClick={onNext} disabled={currentQuestion === sectionEnd}>
+          <span className="classic-bottom-icon"><ChevronRight size={18} /></span>
+          <span>Next</span>
+        </button>
+        <div className="classic-bottom-spacer" />
+        <div className="classic-lab-slot"><LabValues /></div>
+        <button className="classic-bottom-button" type="button" onClick={() => window.alert("Use the question navigator to review marked and unanswered items.")}>
+          <span className="classic-bottom-icon"><RotateCcw size={16} /></span>
+          <span>Review</span>
+        </button>
+        <button className="classic-bottom-button" type="button" onClick={() => window.alert("Select one answer for each question. Use Mark to flag an item for review.")}>
+          <span className="classic-bottom-icon"><CircleHelp size={17} /></span>
+          <span>Help</span>
+        </button>
+        <button className="classic-bottom-button" type="button" onClick={onEndBlock}>
+          <span className="classic-bottom-icon"><Pause size={16} /></span>
+          <span>Pause</span>
+        </button>
+      </nav>
+    </>
   );
 };
