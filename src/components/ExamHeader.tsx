@@ -1,13 +1,4 @@
-import { Clock, BookOpen, ChevronLeft, ChevronRight, Flag } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { LabValues } from "./LabValues";
-import { Notes } from "./Notes";
-import { Calculator } from "./Calculator";
-import { ThemeToggle } from "./ThemeToggle";
-import { TextZoom } from "./TextZoom";
-import { EndBlock } from "./EndBlock";
-import { Separator } from "@/components/ui/separator";
+import { Flag } from "lucide-react";
 
 interface ExamHeaderProps {
   currentQuestion: number;
@@ -34,131 +25,49 @@ interface ExamHeaderProps {
 
 export const ExamHeader = ({
   currentQuestion,
-  totalQuestions,
   timeRemaining,
-  onPrevious,
-  onNext,
   onFlag,
   isFlagged,
-  answeredCount,
-  notes,
-  onNotesChange,
-  isDark,
-  onToggleTheme,
-  fontSize,
-  onFontSizeChange,
-  onEndBlock,
   showTimer,
   currentSection,
-  totalSections,
   sectionStart,
   sectionEnd,
 }: ExamHeaderProps) => {
   const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    return `${hours} hr ${minutes.toString().padStart(2, "0")} min ${secs.toString().padStart(2, "0")} sec`;
   };
 
-  // Progress within current section
-  const sectionQuestions = sectionEnd - sectionStart + 1;
-  const questionInSection = currentQuestion - sectionStart + 1;
-  const progress = (questionInSection / sectionQuestions) * 100;
-  const isLowTime = timeRemaining < 300; // Less than 5 minutes
+  const itemInSection = currentQuestion - sectionStart + 1;
+  const itemsInSection = sectionEnd - sectionStart + 1;
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
-      <div className="container flex h-14 items-center justify-between px-2 md:px-4">
-        {/* Left: Navigation and Item Info */}
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-            <BookOpen className="h-4 w-4 text-primary-foreground" />
-          </div>
-          
-          <div className="hidden sm:flex flex-col text-xs">
-            <span className="font-semibold text-foreground">
-              Item: {questionInSection} of {sectionQuestions}
-            </span>
-            <span className="text-muted-foreground">Section {currentSection} of {totalSections}</span>
-          </div>
-
-          <Separator orientation="vertical" className="h-8 mx-1 hidden sm:block" />
-
-          <Button
-            variant={isFlagged ? "default" : "outline"}
-            size="sm"
-            onClick={onFlag}
-            className={`gap-1 text-xs h-8 ${isFlagged ? "bg-warning text-warning-foreground hover:bg-warning/90" : ""}`}
-          >
-            <Flag className="h-3 w-3" />
-            <span className="hidden md:inline">Mark</span>
-          </Button>
+    <header className="classic-exam-header">
+      <div className="classic-header-left">
+        <div className="classic-section-line">
+          Exam Section {currentSection}: Item {itemInSection} of {itemsInSection}
         </div>
-
-        {/* Center: Navigation Controls */}
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onPrevious}
-            disabled={currentQuestion === sectionStart}
-            className="gap-1 h-8 text-xs"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            <span className="hidden sm:inline">Previous</span>
-          </Button>
-
-          <div className="flex flex-col items-center mx-2">
-            <div className="w-24 sm:w-32">
-              <Progress value={progress} className="h-1.5" />
-            </div>
-          </div>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onNext}
-            disabled={currentQuestion === sectionEnd}
-            className="gap-1 h-8 text-xs"
-          >
-            <span className="hidden sm:inline">Next</span>
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-
-        {/* Right: Tools */}
-        <div className="flex items-center gap-0.5 md:gap-1">
-          <LabValues />
-          <Notes notes={notes} onNotesChange={onNotesChange} />
-          <Calculator />
-          <ThemeToggle isDark={isDark} onToggle={onToggleTheme} />
-          <TextZoom fontSize={fontSize} onFontSizeChange={onFontSizeChange} />
-          
-          <Separator orientation="vertical" className="h-8 mx-1 hidden sm:block" />
-
-          {/* Timer */}
-          {showTimer && (
-            <div
-              className={`flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs ${
-                isLowTime
-                  ? "bg-destructive/10 text-destructive animate-pulse-soft"
-                  : "bg-timer-bg text-foreground"
-              }`}
-            >
-              <Clock className="h-3.5 w-3.5" />
-              <span className="font-mono font-semibold">
-                {formatTime(timeRemaining)}
-              </span>
-            </div>
-          )}
-
-          <EndBlock
-            answeredCount={answeredCount}
-            totalQuestions={totalQuestions}
-            onEnd={onEndBlock}
-          />
-        </div>
+        <button
+          type="button"
+          onClick={onFlag}
+          className={`classic-mark-button ${isFlagged ? "is-marked" : ""}`}
+          aria-pressed={isFlagged}
+        >
+          <span className="classic-mark-box" aria-hidden="true">
+            {isFlagged ? <Flag size={12} strokeWidth={3} /> : null}
+          </span>
+          Mark
+        </button>
       </div>
+
+      {showTimer && (
+        <div className="classic-time-block">
+          <div>Time Remaining:</div>
+          <strong>{formatTime(timeRemaining)}</strong>
+        </div>
+      )}
     </header>
   );
 };
