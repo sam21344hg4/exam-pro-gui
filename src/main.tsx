@@ -4,5 +4,6 @@ import "./index.css";
 import "./classic-overrides.css";
 import "./starttest-tools.css";
 import "./starttest-layout.css";
+import "./starttest-zoom-fix.css";
 
 createRoot(document.getElementById("root")!).render(<App />);
