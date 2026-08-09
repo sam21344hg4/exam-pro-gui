@@ -1,14 +1,28 @@
 /* StartTest-style image magnification.
-   Zoom is a docked exhibit pane: the question remains visible on the left,
+   Zoom is a docked exhibit pane: the question remains readable on the left,
    while the magnified image uses the right side of the exam workspace. */
 
 :root {
-  --classic-zoom-pane-width: min(62vw, 1120px);
+  --classic-zoom-pane-width: clamp(620px, 48vw, 900px);
 }
 
-/* Reflow the question instead of covering it with a black overlay. */
+/* Reflow the question instead of covering it. */
 body:has(.classic-image-zoom-overlay) .classic-exam-main {
   right: var(--classic-zoom-pane-width) !important;
+}
+
+/* While the enlarged exhibit is open, do not keep reserving a second image
+   column inside the already-narrowed question pane. Hide the normal thumbnail
+   and give the stem, answers, and explanation the full left pane. */
+body:has(.classic-image-zoom-overlay) .classic-question-card:has(.classic-question-image) .classic-question-image {
+  display: none !important;
+}
+
+body:has(.classic-image-zoom-overlay) .classic-question-card:has(.classic-question-image) .classic-question-stem,
+body:has(.classic-image-zoom-overlay) .classic-question-card:has(.classic-question-image) .classic-options,
+body:has(.classic-image-zoom-overlay) .classic-question-card:has(.classic-question-image) .classic-explanation {
+  width: 100% !important;
+  max-width: 100% !important;
 }
 
 .classic-image-zoom-overlay {
@@ -30,14 +44,12 @@ body:has(.classic-image-zoom-overlay) .classic-exam-main {
   cursor: default !important;
 }
 
-/* Do not force an artificial minimum width. Scale to the available pane
-   while preserving the original image aspect ratio. */
 .classic-image-zoom-overlay img {
   display: block !important;
   width: auto !important;
   height: auto !important;
-  max-width: 100% !important;
-  max-height: 100% !important;
+  max-width: calc(100% - 8px) !important;
+  max-height: calc(100% - 8px) !important;
   min-width: 0 !important;
   min-height: 0 !important;
   object-fit: contain !important;
@@ -67,24 +79,29 @@ body:has(.classic-image-zoom-overlay) .classic-exam-main {
   cursor: pointer !important;
 }
 
-/* When Lab Values is also open, split the available right-side workspace
-   instead of stacking one tool on top of the other. */
+/* When Lab Values is also open, keep both tools docked instead of stacking. */
 body:has(.classic-lab-docked-panel[data-state="open"]):has(.classic-image-zoom-overlay) .classic-image-zoom-overlay {
   right: min(540px, 34vw) !important;
-  width: min(48vw, 920px) !important;
+  width: min(42vw, 760px) !important;
 }
 
 body:has(.classic-lab-docked-panel[data-state="open"]):has(.classic-image-zoom-overlay) .classic-exam-main {
-  right: calc(min(540px, 34vw) + min(48vw, 920px)) !important;
+  right: calc(min(540px, 34vw) + min(42vw, 760px)) !important;
 }
 
 body:has(.classic-lab-docked-panel[data-state="open"]):has(.classic-image-zoom-overlay) .classic-image-zoom-close {
   right: calc(min(540px, 34vw) + 10px) !important;
 }
 
+@media (max-width: 1200px) {
+  :root {
+    --classic-zoom-pane-width: 46vw;
+  }
+}
+
 @media (max-width: 1050px) {
   :root {
-    --classic-zoom-pane-width: 58vw;
+    --classic-zoom-pane-width: 50vw;
   }
 
   body:has(.classic-lab-docked-panel[data-state="open"]):has(.classic-image-zoom-overlay) .classic-image-zoom-overlay {
@@ -113,6 +130,10 @@ body:has(.classic-lab-docked-panel[data-state="open"]):has(.classic-image-zoom-o
     left: 0 !important;
     width: auto !important;
     border-left: 0 !important;
+  }
+
+  body:has(.classic-image-zoom-overlay) .classic-question-card:has(.classic-question-image) .classic-question-image {
+    display: flex !important;
   }
 
   .classic-image-zoom-close {
