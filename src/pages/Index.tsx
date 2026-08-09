@@ -3,6 +3,7 @@ import { availableExams, ExamData } from "@/data/exams";
 import { StartScreen } from "@/components/StartScreen";
 import { ExamHeader } from "@/components/ExamHeader";
 import { QuestionCard } from "@/components/QuestionCard";
+import { QuestionStatusPanel } from "@/components/QuestionStatusPanel";
 import { ExamSummary } from "@/components/ExamSummary";
 import { BlockReview } from "@/components/BlockReview";
 
@@ -313,6 +314,17 @@ const Index = () => {
         canPrevious={canPrevious}
         canNext={canNext}
       />
+
+      {!showBlockReview ? (
+        <QuestionStatusPanel
+          sectionStart={sectionInfo.sectionStart}
+          sectionEnd={sectionInfo.sectionEnd}
+          currentQuestion={currentQuestion}
+          answers={answers}
+          flagged={flagged}
+          onNavigate={handleNavigate}
+        />
+      ) : null}
 
       <main className="classic-exam-main" aria-live="polite">
         {showBlockReview ? (
