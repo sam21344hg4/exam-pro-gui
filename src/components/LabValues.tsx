@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { PanelsTopLeft, X } from "lucide-react";
 
 type LabEntry = ["section" | "group" | "item", string, string, string];
+type LabTab = "serum" | "cerebrospinal" | "blood" | "urine";
 
 const labEntries: LabEntry[] = [
   ["section", "SERUM", "Reference Range", "SI Reference Intervals"],
@@ -138,48 +139,122 @@ const labEntries: LabEntry[] = [
   ["item", "BODY MASS INDEX (BMI)", "Adult: 19–25 kg/m 2", ""],
 ];
 
+const tabForSection = (section: string): LabTab => {
+  if (section.includes("CEREBROSPINAL")) return "cerebrospinal";
+  if (section.includes("HEMATOLOGIC") || section.includes("ARTERIAL BLOOD")) return "blood";
+  if (section.includes("URINE")) return "urine";
+  return "serum";
+};
+
+const tabs: Array<{ id: LabTab; label: string }> = [
+  { id: "serum", label: "Serum" },
+  { id: "cerebrospinal", label: "Cerebrospinal" },
+  { id: "blood", label: "Blood" },
+  { id: "urine", label: "Urine and BMI" },
+];
+
 export const LabValues = () => {
   const [open, setOpen] = useState(false);
+  const [tab, setTab] = useState<LabTab>("serum");
+  const [query, setQuery] = useState("");
+  const [showSI, setShowSI] = useState(false);
+
+  const visibleEntries = useMemo(() => {
+    let currentTab: LabTab = "serum";
+    const inTab: LabEntry[] = [];
+
+    labEntries.forEach((entry) => {
+      if (entry[0] === "section") currentTab = tabForSection(entry[1]);
+      if (currentTab === tab) inTab.push(entry);
+    });
+
+    const normalizedQuery = query.trim().toLowerCase();
+    if (!normalizedQuery) return inTab;
+
+    return inTab.filter(([type, name, reference, si]) => {
+      if (type !== "item") return false;
+      return `${name} ${reference} ${si}`.toLowerCase().includes(normalizedQuery);
+    });
+  }, [query, tab]);
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={setOpen} modal={false}>
       <DialogTrigger asChild>
         <button type="button" className="classic-tool-trigger" title="Lab Values">
           <span className="classic-bottom-icon"><PanelsTopLeft size={17} strokeWidth={2.1} /></span>
           <span>Lab Values</span>
         </button>
       </DialogTrigger>
-      <DialogContent className="classic-reference-dialog" aria-describedby={undefined}>
-        <div className="classic-reference-titlebar">
-          <span>Laboratory Values</span>
-          <button type="button" onClick={() => setOpen(false)} aria-label="Close laboratory values"><X size={18} /></button>
+
+      <DialogContent
+        className="classic-reference-dialog classic-lab-docked-panel"
+        aria-describedby={undefined}
+        onInteractOutside={(event) => event.preventDefault()}
+      >
+        <div className="classic-reference-titlebar classic-lab-docked-titlebar">
+          <span className="sr-only">Laboratory Values</span>
+          <button type="button" onClick={() => setOpen(false)} aria-label="Close laboratory values">
+            <X size={18} />
+          </button>
         </div>
-        <div className="classic-lab-scroll">
-          <div className="classic-lab-heading">LABORATORY VALUES</div>
-          <table className="classic-lab-table">
+
+        <div className="classic-lab-toolbar">
+          <input
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search"
+            aria-label="Search laboratory values"
+          />
+          <label>
+            <input type="checkbox" checked={showSI} onChange={(event) => setShowSI(event.target.checked)} />
+            <span>SI Reference Intervals</span>
+          </label>
+        </div>
+
+        <div className="classic-lab-tabs" role="tablist" aria-label="Laboratory value categories">
+          {tabs.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              role="tab"
+              aria-selected={tab === item.id}
+              className={tab === item.id ? "is-active" : ""}
+              onClick={() => {
+                setTab(item.id);
+                setQuery("");
+              }}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="classic-lab-scroll classic-lab-docked-scroll">
+          <table className="classic-lab-table classic-lab-docked-table">
             <tbody>
-              {labEntries.map(([type, name, reference, si], index) => {
+              {visibleEntries.map(([type, name, reference, si], index) => {
                 if (type === "section") {
                   return (
                     <tr className="classic-lab-section" key={`${name}-${index}`}>
                       <th>{name}</th>
-                      <th>Reference Range</th>
-                      <th>SI Reference Intervals</th>
+                      <th>{showSI ? "SI Reference Intervals" : "Reference Range"}</th>
                     </tr>
                   );
                 }
+
                 if (type === "group") {
                   return (
                     <tr className="classic-lab-group" key={`${name}-${index}`}>
-                      <th colSpan={3}>{name}</th>
+                      <th colSpan={2}>{name}</th>
                     </tr>
                   );
                 }
+
                 return (
                   <tr key={`${name}-${reference}-${index}`}>
                     <td>{name}</td>
-                    <td>{reference}</td>
-                    <td>{si}</td>
+                    <td>{showSI ? si || reference : reference}</td>
                   </tr>
                 );
               })}
