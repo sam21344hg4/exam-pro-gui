@@ -1,10 +1,5 @@
+import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuTrigger,
-} from "@/components/ui/context-menu";
 
 interface OptionButtonProps {
   label: string;
@@ -30,8 +25,8 @@ export const OptionButton = ({
   fontSize = 18,
   isStrikethrough = false,
   onToggleStrikethrough,
-}: OptionButtonProps) => {
-  const buttonContent = (
+}: OptionButtonProps) => (
+  <div className="classic-option-row">
     <button
       type="button"
       onClick={onClick}
@@ -43,31 +38,30 @@ export const OptionButton = ({
         showResult && isSelected && !isCorrect && "is-incorrect",
         isStrikethrough && !showResult && "is-struck"
       )}
+      aria-pressed={isSelected}
     >
       <span className="classic-radio" aria-hidden="true">
-        {isSelected && <span className="classic-radio-dot" />}
+        {isSelected ? <span className="classic-radio-dot" /> : null}
       </span>
       <span
-        className={cn("classic-option-text", isStrikethrough && !showResult && "line-through")}
+        className="classic-option-text"
         style={{ fontSize: `${Math.max(fontSize - 2, 14)}px` }}
       >
         <strong>{label})</strong> {text}
       </span>
     </button>
-  );
 
-  if (!onToggleStrikethrough || showResult) {
-    return buttonContent;
-  }
-
-  return (
-    <ContextMenu>
-      <ContextMenuTrigger asChild>{buttonContent}</ContextMenuTrigger>
-      <ContextMenuContent className="w-48">
-        <ContextMenuItem onClick={onToggleStrikethrough}>
-          {isStrikethrough ? "Remove strikethrough" : "Strikethrough"}
-        </ContextMenuItem>
-      </ContextMenuContent>
-    </ContextMenu>
-  );
-};
+    {!showResult && onToggleStrikethrough ? (
+      <button
+        type="button"
+        className="classic-strikeout-button"
+        aria-label={isStrikethrough ? `Restore option ${label}` : `Strikeout option ${label}`}
+        aria-pressed={isStrikethrough}
+        title={isStrikethrough ? `Restore option ${label}` : `Strikeout option ${label}`}
+        onClick={onToggleStrikethrough}
+      >
+        <X size={15} strokeWidth={2.2} />
+      </button>
+    ) : null}
+  </div>
+);
