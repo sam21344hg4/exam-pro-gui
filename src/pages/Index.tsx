@@ -22,6 +22,7 @@ const Index = () => {
   const [timeSpent, setTimeSpent] = useState(0);
   const [currentSection, setCurrentSection] = useState(1);
   const [strikethroughs, setStrikethroughs] = useState<Set<string>>(new Set());
+  const [highlights, setHighlights] = useState<Record<number, string[]>>({});
   const [showBlockReview, setShowBlockReview] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
 
@@ -61,6 +62,7 @@ const Index = () => {
     setTimeRemaining(SECTION_TIME_LIMIT);
     setTimeSpent(0);
     setStrikethroughs(new Set());
+    setHighlights({});
     setShowBlockReview(false);
     setIsPaused(false);
   }, []);
@@ -139,6 +141,15 @@ const Index = () => {
 
   const handleSelectAnswer = useCallback((answer: string) => {
     if (mode === "review" || showExplanation) return;
+
+    const strikeKey = `${currentQuestion}-${answer}`;
+    setStrikethroughs((previous) => {
+      if (!previous.has(strikeKey)) return previous;
+      const next = new Set(previous);
+      next.delete(strikeKey);
+      return next;
+    });
+
     setAnswers((previous) => ({ ...previous, [currentQuestion]: answer }));
     if (mode === "practice") setShowExplanation(true);
   }, [currentQuestion, mode, showExplanation]);
@@ -194,11 +205,42 @@ const Index = () => {
 
   const handleToggleStrikethrough = useCallback((optionLabel: string) => {
     const key = `${currentQuestion}-${optionLabel}`;
+    const willStrike = !strikethroughs.has(key);
+
     setStrikethroughs((previous) => {
       const next = new Set(previous);
       if (next.has(key)) next.delete(key);
       else next.add(key);
       return next;
+    });
+
+    if (willStrike) {
+      setAnswers((previous) => {
+        if (previous[currentQuestion] !== optionLabel) return previous;
+        const next = { ...previous };
+        delete next[currentQuestion];
+        return next;
+      });
+    }
+  }, [currentQuestion, strikethroughs]);
+
+  const handleAddHighlight = useCallback((text: string) => {
+    setHighlights((previous) => {
+      const existing = previous[currentQuestion] || [];
+      if (existing.includes(text)) return previous;
+      return { ...previous, [currentQuestion]: [...existing, text] };
+    });
+  }, [currentQuestion]);
+
+  const handleRemoveHighlight = useCallback((text: string) => {
+    setHighlights((previous) => {
+      const nextValues = (previous[currentQuestion] || []).filter((value) => value !== text);
+      if (nextValues.length === 0) {
+        const next = { ...previous };
+        delete next[currentQuestion];
+        return next;
+      }
+      return { ...previous, [currentQuestion]: nextValues };
     });
   }, [currentQuestion]);
 
@@ -293,6 +335,9 @@ const Index = () => {
             fontSize={18}
             strikethroughs={strikethroughs}
             onToggleStrikethrough={handleToggleStrikethrough}
+            highlights={highlights[currentQuestion] || []}
+            onAddHighlight={handleAddHighlight}
+            onRemoveHighlight={handleRemoveHighlight}
           />
         )}
       </main>
