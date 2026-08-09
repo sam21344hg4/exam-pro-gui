@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, CircleHelp, Flag, Pause, RotateCcw } from "lucide-react";
+import { ChevronLeft, ChevronRight, CircleHelp, Flag, RotateCcw, Square } from "lucide-react";
 import { LabValues } from "./LabValues";
 import { Calculator } from "./Calculator";
 import { Notes } from "./Notes";
@@ -59,6 +59,16 @@ export const ExamHeader = ({
     window.alert("Select one answer for each question. Use Mark to flag an item. Calculator, Lab Values, and Notes open in separate dialogs.");
   };
 
+  const handleEndBlockClick = () => {
+    const confirmed = window.confirm(
+      "End this block? You will not be able to return to it."
+    );
+
+    if (confirmed) {
+      onEndBlock();
+    }
+  };
+
   return (
     <>
       <header className="classic-exam-header">
@@ -108,9 +118,9 @@ export const ExamHeader = ({
           <span className="classic-bottom-icon"><CircleHelp size={17} /></span>
           <span>Help</span>
         </button>
-        <button className="classic-bottom-button" type="button" onClick={onEndBlock}>
-          <span className="classic-bottom-icon"><Pause size={16} /></span>
-          <span>Pause</span>
+        <button className="classic-bottom-button" type="button" onClick={handleEndBlockClick}>
+          <span className="classic-bottom-icon"><Square size={16} /></span>
+          <span>End Block</span>
         </button>
       </nav>
     </>
