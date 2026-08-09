@@ -32,27 +32,76 @@ export const QuestionCard = ({
 }: QuestionCardProps) => {
   const isCorrect = selectedAnswer === question.correctAnswer;
   const stemRef = useRef<HTMLDivElement>(null);
+  const splitterDraggingRef = useRef(false);
   const [imageInverted, setImageInverted] = useState(false);
   const [imageContrast, setImageContrast] = useState(100);
   const [showContrast, setShowContrast] = useState(false);
   const [showZoom, setShowZoom] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [zoomPaneWidth, setZoomPaneWidth] = useState(0);
 
   useEffect(() => {
     if (!showZoom) return;
 
     const previousOverflow = document.body.style.overflow;
+    const root = document.documentElement;
     document.body.style.overflow = "hidden";
+
+    const clampPaneWidth = (width: number) => {
+      const minPane = Math.min(420, Math.max(300, window.innerWidth * 0.3));
+      const maxPane = Math.max(minPane, window.innerWidth - 132 - 360);
+      return Math.min(maxPane, Math.max(minPane, width));
+    };
+
+    const initialWidth = clampPaneWidth(zoomPaneWidth || window.innerWidth * 0.5);
+    setZoomPaneWidth(initialWidth);
+    root.style.setProperty("--classic-zoom-pane-width", `${initialWidth}px`);
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") setShowZoom(false);
     };
 
+    const handlePointerMove = (event: PointerEvent) => {
+      if (!splitterDraggingRef.current) return;
+      const nextWidth = clampPaneWidth(window.innerWidth - event.clientX);
+      setZoomPaneWidth(nextWidth);
+      root.style.setProperty("--classic-zoom-pane-width", `${nextWidth}px`);
+    };
+
+    const handlePointerUp = () => {
+      if (!splitterDraggingRef.current) return;
+      splitterDraggingRef.current = false;
+      document.body.classList.remove("classic-zoom-resizing");
+    };
+
+    const handleResize = () => {
+      const nextWidth = clampPaneWidth(zoomPaneWidth || window.innerWidth * 0.5);
+      setZoomPaneWidth(nextWidth);
+      root.style.setProperty("--classic-zoom-pane-width", `${nextWidth}px`);
+    };
+
     window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", handlePointerUp);
+    window.addEventListener("resize", handleResize);
+
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerUp);
+      window.removeEventListener("resize", handleResize);
+      splitterDraggingRef.current = false;
+      document.body.classList.remove("classic-zoom-resizing");
       document.body.style.overflow = previousOverflow;
+      root.style.removeProperty("--classic-zoom-pane-width");
     };
   }, [showZoom]);
+
+  useEffect(() => {
+    setShowZoom(false);
+    setZoomLevel(1);
+    setShowContrast(false);
+  }, [question.id]);
 
   const highlightedStem = useMemo(() => {
     if (highlights.length === 0) return question.stem;
@@ -105,53 +154,73 @@ export const QuestionCard = ({
     setImageContrast(100);
   };
 
+  const openZoom = () => {
+    setZoomLevel(1);
+    setZoomPaneWidth(Math.round(window.innerWidth * 0.5));
+    setShowZoom(true);
+  };
+
+  const zoomIn = () => setZoomLevel((value) => Math.min(3, Number((value + 0.25).toFixed(2))));
+  const zoomOut = () => setZoomLevel((value) => Math.max(0.5, Number((value - 0.25).toFixed(2))));
+  const resetZoom = () => setZoomLevel(1);
+
   const zoomOverlay = showZoom && question.image
     ? createPortal(
-        <div
+        <section
           className="classic-image-zoom-overlay"
           role="dialog"
-          aria-modal="true"
+          aria-modal="false"
           aria-label="Magnified image"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) setShowZoom(false);
-          }}
-          style={{ zIndex: 2147483000 }}
+          style={{ width: zoomPaneWidth ? `${zoomPaneWidth}px` : undefined }}
         >
-          <button
-            type="button"
-            className="classic-image-zoom-close"
-            onClick={() => setShowZoom(false)}
-            aria-label="Close magnified image"
-            style={{
-              position: "fixed",
-              top: 18,
-              right: 22,
-              zIndex: 2147483647,
-              width: "auto",
-              minWidth: 92,
-              height: 38,
-              padding: "0 14px",
-              display: "inline-flex",
-              flexDirection: "row",
-              gap: 7,
-              background: "#000",
-              color: "#fff",
-              border: "2px solid #fff",
-              borderRadius: 0,
-              font: "bold 12pt Arial, Helvetica, sans-serif",
-              cursor: "pointer",
+          <div
+            className="classic-image-zoom-splitter"
+            role="separator"
+            aria-orientation="vertical"
+            aria-label="Resize question and image panes"
+            title="Drag to resize"
+            onPointerDown={(event) => {
+              event.preventDefault();
+              splitterDraggingRef.current = true;
+              document.body.classList.add("classic-zoom-resizing");
+              event.currentTarget.setPointerCapture?.(event.pointerId);
             }}
           >
-            <X size={22} strokeWidth={3} />
-            <span>CLOSE</span>
-          </button>
-          <img
-            src={question.image}
-            alt={question.imageCaption || "Magnified question image"}
-            style={{ filter: imageFilter }}
-            onMouseDown={(event) => event.stopPropagation()}
-          />
-        </div>,
+            <span aria-hidden="true" />
+          </div>
+
+          <div className="classic-image-zoom-toolbar">
+            <div className="classic-image-zoom-controls" role="group" aria-label="Image zoom controls">
+              <button type="button" onClick={zoomIn}>ZOOM IN</button>
+              <button type="button" onClick={zoomOut}>ZOOM OUT</button>
+              <button type="button" onClick={resetZoom}>RESET</button>
+              <span className="classic-image-zoom-level">{Math.round(zoomLevel * 100)}%</span>
+            </div>
+
+            <button
+              type="button"
+              className="classic-image-zoom-close"
+              onClick={() => setShowZoom(false)}
+              aria-label="Close magnified image"
+            >
+              <X size={22} strokeWidth={3} />
+              <span>CLOSE</span>
+            </button>
+          </div>
+
+          <div className="classic-image-zoom-stage">
+            <img
+              className="classic-image-zoom-image"
+              src={question.image}
+              alt={question.imageCaption || "Magnified question image"}
+              style={{
+                filter: imageFilter,
+                width: `${zoomLevel * 100}%`,
+              }}
+              draggable={false}
+            />
+          </div>
+        </section>,
         document.body
       )
     : null;
@@ -218,7 +287,7 @@ export const QuestionCard = ({
                       ) : null}
                     </div>
 
-                    <button type="button" onClick={() => setShowZoom(true)} title="Magnify image">
+                    <button type="button" onClick={openZoom} title="Magnify image">
                       <Search size={27} strokeWidth={2} />
                       <span>Zoom</span>
                     </button>
