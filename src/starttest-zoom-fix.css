@@ -1,38 +1,54 @@
-/* Keep image magnification inside the StartTest question workspace.
-   Header, question-status rail, bottom controls, and docked reference panels remain visible. */
+/* StartTest-style image magnification.
+   Zoom is a docked exhibit pane: the question remains visible on the left,
+   while the magnified image uses the right side of the exam workspace. */
+
+:root {
+  --classic-zoom-pane-width: min(62vw, 1120px);
+}
+
+/* Reflow the question instead of covering it with a black overlay. */
+body:has(.classic-image-zoom-overlay) .classic-exam-main {
+  right: var(--classic-zoom-pane-width) !important;
+}
 
 .classic-image-zoom-overlay {
   position: fixed !important;
   top: 62px !important;
   right: 0 !important;
   bottom: 50px !important;
-  left: 132px !important;
+  left: auto !important;
+  width: var(--classic-zoom-pane-width) !important;
   z-index: 65 !important;
   box-sizing: border-box !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  padding: 48px 24px 24px !important;
-  overflow: auto !important;
-  background: #000 !important;
-  cursor: zoom-out !important;
+  padding: 48px 10px 10px !important;
+  overflow: hidden !important;
+  background: #fff !important;
+  border-left: 1px solid #000 !important;
+  cursor: default !important;
 }
 
+/* Do not force an artificial minimum width. Scale to the available pane
+   while preserving the original image aspect ratio. */
 .classic-image-zoom-overlay img {
+  display: block !important;
   width: auto !important;
   height: auto !important;
-  max-width: calc(100% - 24px) !important;
-  max-height: calc(100% - 24px) !important;
-  min-width: min(70%, 900px);
+  max-width: 100% !important;
+  max-height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
   object-fit: contain !important;
-  background: #fff !important;
+  background: transparent !important;
   cursor: default !important;
 }
 
 .classic-image-zoom-close {
   position: fixed !important;
-  top: 72px !important;
-  right: 16px !important;
+  top: 70px !important;
+  right: 10px !important;
   z-index: 66 !important;
   width: auto !important;
   min-width: 104px !important;
@@ -51,40 +67,55 @@
   cursor: pointer !important;
 }
 
-/* Lab Values stays beside the magnified exhibit instead of being covered by it. */
-body:has(.classic-lab-docked-panel[data-state="open"]) .classic-image-zoom-overlay {
+/* When Lab Values is also open, split the available right-side workspace
+   instead of stacking one tool on top of the other. */
+body:has(.classic-lab-docked-panel[data-state="open"]):has(.classic-image-zoom-overlay) .classic-image-zoom-overlay {
   right: min(540px, 34vw) !important;
+  width: min(48vw, 920px) !important;
 }
 
-body:has(.classic-lab-docked-panel[data-state="open"]) .classic-image-zoom-close {
-  right: calc(min(540px, 34vw) + 16px) !important;
+body:has(.classic-lab-docked-panel[data-state="open"]):has(.classic-image-zoom-overlay) .classic-exam-main {
+  right: calc(min(540px, 34vw) + min(48vw, 920px)) !important;
+}
+
+body:has(.classic-lab-docked-panel[data-state="open"]):has(.classic-image-zoom-overlay) .classic-image-zoom-close {
+  right: calc(min(540px, 34vw) + 10px) !important;
 }
 
 @media (max-width: 1050px) {
-  body:has(.classic-lab-docked-panel[data-state="open"]) .classic-image-zoom-overlay {
-    right: 44vw !important;
+  :root {
+    --classic-zoom-pane-width: 58vw;
   }
 
-  body:has(.classic-lab-docked-panel[data-state="open"]) .classic-image-zoom-close {
-    right: calc(44vw + 16px) !important;
+  body:has(.classic-lab-docked-panel[data-state="open"]):has(.classic-image-zoom-overlay) .classic-image-zoom-overlay {
+    right: 44vw !important;
+    width: 56vw !important;
+  }
+
+  body:has(.classic-lab-docked-panel[data-state="open"]):has(.classic-image-zoom-overlay) .classic-exam-main {
+    right: 100vw !important;
+  }
+
+  body:has(.classic-lab-docked-panel[data-state="open"]):has(.classic-image-zoom-overlay) .classic-image-zoom-close {
+    right: calc(44vw + 10px) !important;
   }
 }
 
 @media (max-width: 820px) {
-  .classic-image-zoom-overlay {
-    left: 0 !important;
-  }
-
-  .classic-image-zoom-overlay img {
-    min-width: 0 !important;
-    max-width: calc(100% - 16px) !important;
-  }
-
-  body:has(.classic-lab-docked-panel[data-state="open"]) .classic-image-zoom-overlay {
+  body:has(.classic-image-zoom-overlay) .classic-exam-main {
     right: 0 !important;
   }
 
-  body:has(.classic-lab-docked-panel[data-state="open"]) .classic-image-zoom-close {
-    right: 16px !important;
+  .classic-image-zoom-overlay {
+    top: 62px !important;
+    right: 0 !important;
+    bottom: 50px !important;
+    left: 0 !important;
+    width: auto !important;
+    border-left: 0 !important;
+  }
+
+  .classic-image-zoom-close {
+    right: 10px !important;
   }
 }
