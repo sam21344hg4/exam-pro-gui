@@ -44,7 +44,7 @@ export const OptionButton = ({
         {isSelected ? <span className="classic-radio-dot" /> : null}
       </span>
       <span
-        className="classic-option-text"
+        className={cn("classic-option-text", isStrikethrough && !showResult && "is-struck")}
         style={{ fontSize: `${Math.max(fontSize - 2, 14)}px` }}
       >
         <strong>{label})</strong> {text}
@@ -54,7 +54,7 @@ export const OptionButton = ({
     {!showResult && onToggleStrikethrough ? (
       <button
         type="button"
-        className="classic-strikeout-button"
+        className="classic-strike-button"
         aria-label={isStrikethrough ? `Restore option ${label}` : `Strikeout option ${label}`}
         aria-pressed={isStrikethrough}
         title={isStrikethrough ? `Restore option ${label}` : `Strikeout option ${label}`}
