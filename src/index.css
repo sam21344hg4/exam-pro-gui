@@ -201,7 +201,7 @@
   z-index: 40;
   height: 52px;
   display: grid;
-  grid-template-columns: 88px 88px 1fr 92px 82px 72px 72px;
+  grid-template-columns: 88px 88px minmax(20px, 1fr) 92px 82px 72px 72px 72px 84px;
   align-items: stretch;
   color: #fff;
   background: #063b70;
@@ -241,7 +241,10 @@
 
 @media (max-width: 720px) {
   .classic-exam-main { padding: 20px 14px 80px; }
-  .classic-bottom-bar { grid-template-columns: repeat(6, 1fr); }
+  .classic-bottom-bar {
+    grid-template-columns: repeat(8, minmax(52px, 1fr));
+    overflow-x: auto;
+  }
   .classic-bottom-spacer { display: none; }
   .classic-bottom-button { font-size: 9px; }
   .classic-time-block { font-size: 10px; }
