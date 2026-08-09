@@ -1,5 +1,6 @@
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
+import { Contrast, Search, X } from "lucide-react";
 import { Question } from "@/data/examQuestions";
 import { OptionButton } from "./OptionButton";
 
@@ -30,6 +31,10 @@ export const QuestionCard = ({
 }: QuestionCardProps) => {
   const isCorrect = selectedAnswer === question.correctAnswer;
   const stemRef = useRef<HTMLDivElement>(null);
+  const [imageInverted, setImageInverted] = useState(false);
+  const [imageContrast, setImageContrast] = useState(100);
+  const [showContrast, setShowContrast] = useState(false);
+  const [showZoom, setShowZoom] = useState(false);
 
   const highlightedStem = useMemo(() => {
     if (highlights.length === 0) return question.stem;
@@ -75,6 +80,13 @@ export const QuestionCard = ({
     selection.removeAllRanges();
   };
 
+  const imageFilter = `${imageInverted ? "invert(1) " : ""}contrast(${imageContrast}%)`;
+
+  const resetImage = () => {
+    setImageInverted(false);
+    setImageContrast(100);
+  };
+
   return (
     <motion.div
       key={question.id}
@@ -95,7 +107,61 @@ export const QuestionCard = ({
           <p>{highlightedStem}</p>
           {question.image && (
             <figure className="classic-question-image">
-              <img src={question.image} alt={question.imageCaption || "Question image"} />
+              <div className="classic-image-frame">
+                <div className="classic-image-tools" aria-label="Image tools">
+                  <button
+                    type="button"
+                    className={imageInverted ? "is-active" : ""}
+                    onClick={() => setImageInverted((value) => !value)}
+                    title="Invert image colors"
+                  >
+                    <span className="classic-invert-icon" aria-hidden="true" />
+                    <span>Invert</span>
+                  </button>
+
+                  <div className="classic-image-tool-with-popover">
+                    <button
+                      type="button"
+                      className={showContrast ? "is-active" : ""}
+                      onClick={() => setShowContrast((value) => !value)}
+                      title="Adjust image contrast"
+                    >
+                      <Contrast size={25} strokeWidth={2} />
+                      <span>Contrast</span>
+                    </button>
+                    {showContrast ? (
+                      <div className="classic-contrast-popover">
+                        <label htmlFor={`contrast-${question.id}`}>Contrast</label>
+                        <input
+                          id={`contrast-${question.id}`}
+                          type="range"
+                          min="25"
+                          max="200"
+                          step="5"
+                          value={imageContrast}
+                          onChange={(event) => setImageContrast(Number(event.target.value))}
+                          orient="vertical"
+                        />
+                        <div>{imageContrast}%</div>
+                        <button type="button" onClick={resetImage}>Reset</button>
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <button type="button" onClick={() => setShowZoom(true)} title="Magnify image">
+                    <Search size={27} strokeWidth={2} />
+                    <span>Zoom</span>
+                  </button>
+                </div>
+
+                <div className="classic-image-canvas">
+                  <img
+                    src={question.image}
+                    alt={question.imageCaption || "Question image"}
+                    style={{ filter: imageFilter }}
+                  />
+                </div>
+              </div>
               {question.imageCaption && <figcaption>{question.imageCaption}</figcaption>}
             </figure>
           )}
@@ -127,6 +193,19 @@ export const QuestionCard = ({
           <p><strong>Educational Objective:</strong> {question.educationalObjective}</p>
         </div>
       )}
+
+      {showZoom && question.image ? (
+        <div className="classic-image-zoom-overlay" role="dialog" aria-modal="true" aria-label="Magnified image">
+          <button type="button" className="classic-image-zoom-close" onClick={() => setShowZoom(false)} aria-label="Close magnified image">
+            <X size={20} />
+          </button>
+          <img
+            src={question.image}
+            alt={question.imageCaption || "Magnified question image"}
+            style={{ filter: imageFilter }}
+          />
+        </div>
+      ) : null}
     </motion.div>
   );
 };
