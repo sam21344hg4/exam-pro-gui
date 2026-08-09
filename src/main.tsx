@@ -3,5 +3,6 @@ import App from "./App.tsx";
 import "./index.css";
 import "./classic-overrides.css";
 import "./starttest-tools.css";
+import "./starttest-layout.css";
 
 createRoot(document.getElementById("root")!).render(<App />);
