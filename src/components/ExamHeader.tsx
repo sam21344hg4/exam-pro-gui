@@ -58,6 +58,19 @@ const formatLongTime = (seconds: number) => {
   return `${minutes} min ${secs} sec`;
 };
 
+const navCircleStyle = {
+  width: 30,
+  height: 30,
+  padding: 4,
+  borderRadius: "50%",
+  background: "#fff",
+  color: "#000",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  boxSizing: "border-box" as const,
+};
+
 export const ExamHeader = ({
   currentQuestion,
   timeRemaining,
@@ -173,11 +186,11 @@ export const ExamHeader = ({
 
         <nav className="classic-header-navigation" aria-label="Question navigation">
           <button type="button" onClick={onPrevious} disabled={!canPrevious} title="Previous">
-            <ChevronLeft aria-hidden="true" /><span>Previous</span>
+            <span aria-hidden="true" style={navCircleStyle}><ChevronLeft style={{ width: 22, height: 22, stroke: "#000" }} /></span><span>Previous</span>
           </button>
           <div className="classic-header-question-number">{itemInSection} / {itemsInSection}</div>
           <button type="button" onClick={onNext} disabled={!canNext} title="Next">
-            <ChevronRight aria-hidden="true" /><span>Next</span>
+            <span aria-hidden="true" style={navCircleStyle}><ChevronRight style={{ width: 22, height: 22, stroke: "#000" }} /></span><span>Next</span>
           </button>
         </nav>
 
@@ -247,7 +260,9 @@ export const ExamHeader = ({
           <button type="button" className="classic-footer-button classic-lock-button" onClick={() => openPopup("lockWarning")} title="Lock"><LockKeyhole aria-hidden="true" /><span>Lock</span></button>
         ) : null}
         <button type="button" className={`classic-footer-button classic-end-button ${unanswered === 0 ? "is-complete" : ""}`} onClick={() => togglePopup("end")} title="End Block">
-          <span className="classic-end-icon">{unanswered === 0 ? <ChevronRight aria-hidden="true" /> : <X aria-hidden="true" />}</span><span>End Block</span>
+          <span aria-hidden="true" style={{ width: 32, height: 32, display: "inline-flex", alignItems: "center", justifyContent: "center", borderRadius: "50%", background: unanswered === 0 ? "#000" : "#ed1c24", color: "#fff" }}>
+            {unanswered === 0 ? <ChevronRight style={{ width: 24, height: 24, stroke: "#fff", strokeWidth: 3 }} /> : <X style={{ width: 24, height: 24, stroke: "#fff", strokeWidth: 3 }} />}
+          </span><span>End Block</span>
         </button>
       </footer>
 
