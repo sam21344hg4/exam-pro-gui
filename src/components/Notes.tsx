@@ -18,12 +18,17 @@ export const Notes = ({ itemId, notes, onNotesChange }: NotesProps) => {
   const openItemRef = useRef(resolvedItemId);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const wasOpenRef = useRef(false);
+  const callbackRef = useRef(onNotesChange);
+  const itemIdModeRef = useRef(itemId !== undefined);
+
+  useEffect(() => { callbackRef.current = onNotesChange; }, [onNotesChange]);
+  useEffect(() => { itemIdModeRef.current = itemId !== undefined; }, [itemId]);
 
   const commitNote = (targetItem: number, value: string) => {
-    if (itemId === undefined) {
-      (onNotesChange as (notes: string) => void)(value);
+    if (!itemIdModeRef.current) {
+      (callbackRef.current as (notes: string) => void)(value);
     } else {
-      (onNotesChange as (itemId: number, notes: string) => void)(targetItem, value);
+      (callbackRef.current as (itemId: number, notes: string) => void)(targetItem, value);
     }
   };
 
@@ -58,6 +63,14 @@ export const Notes = ({ itemId, notes, onNotesChange }: NotesProps) => {
     }
     wasOpenRef.current = open;
   }, [open]);
+
+  useEffect(() => {
+    return () => {
+      if (!wasOpenRef.current) return;
+      const value = draftRef.current;
+      commitNote(openItemRef.current, value.trim() ? value : "");
+    };
+  }, []);
 
   useEffect(() => {
     if (!open) return;
