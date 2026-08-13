@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Calculator as CalculatorIcon } from "lucide-react";
 
@@ -9,6 +9,15 @@ export const Calculator = () => {
   const [operation, setOperation] = useState<string | null>(null);
   const [waitingForOperand, setWaitingForOperand] = useState(false);
   const [memoryValue, setMemoryValue] = useState(0);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [open]);
 
   const numericDisplay = () => {
     const value = Number.parseFloat(display);
@@ -96,12 +105,17 @@ export const Calculator = () => {
   };
   const memoryClear = () => setMemoryValue(0);
 
+  const openPanel = () => {
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+    setOpen(true);
+  };
+
   const panel = open
     ? createPortal(
         <div className="nbme-calculator-panel" role="dialog" aria-label="Calculator">
           <div className={`nbme-calc-display${memoryValue !== 0 ? " has-memory" : ""}`}>
             <span className="nbme-calc-equation">
-              {previousValue !== null && operation ? `${previousValue} ${operation}` : "\u00a0"}
+              {previousValue !== null ? `${previousValue} ${operation || ""}` : "\u00a0"}
             </span>
             <span className="nbme-calc-operand">{display}</span>
           </div>
@@ -156,7 +170,7 @@ export const Calculator = () => {
         className="classic-tool-trigger"
         title="Calculator"
         aria-expanded={open}
-        onClick={() => setOpen((value) => !value)}
+        onClick={() => (open ? setOpen(false) : openPanel())}
       >
         <span className="classic-tool-square-icon"><CalculatorIcon size={24} strokeWidth={2.3} /></span>
         <span>Calculator</span>
