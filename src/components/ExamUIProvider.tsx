@@ -11,6 +11,7 @@ export type ExamPopup =
   | "zoom"
   | "lockWarning"
   | "unauthorizedBreak"
+  | "reducedTime"
   | null;
 
 interface ExamUIContextValue {
@@ -52,7 +53,7 @@ export const ExamUIProvider = ({ children }: { children: ReactNode }) => {
   const [darkTheme, setDarkTheme] = useState(false);
   const zoomBeforeMediaRef = useRef<100 | 125 | 150 | 200>(100);
 
-  const isBlockingModal = activePopup === "help" || activePopup === "end" || activePopup === "lockWarning" || activePopup === "unauthorizedBreak";
+  const isBlockingModal = activePopup === "help" || activePopup === "end" || activePopup === "lockWarning" || activePopup === "unauthorizedBreak" || activePopup === "reducedTime";
 
   useEffect(() => {
     document.body.classList.toggle("classic-show-strikeout", showStrikeout);
@@ -164,7 +165,7 @@ export const ExamUIProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
-      if (activePopup === "notes" || activePopup === "unauthorizedBreak") return;
+      if (activePopup === "notes" || activePopup === "unauthorizedBreak" || activePopup === "reducedTime") return;
 
       const blocking = activePopup === "help" || activePopup === "end" || activePopup === "lockWarning";
       const focusSelectors: Partial<Record<Exclude<ExamPopup, null>, string>> = {
