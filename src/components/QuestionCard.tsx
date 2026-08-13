@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
-import { Contrast, Search, X } from "lucide-react";
+import { Contrast, Flag, Search, X } from "lucide-react";
 import { Question } from "@/data/examQuestions";
 import { OptionButton } from "./OptionButton";
 
@@ -13,6 +13,8 @@ interface QuestionCardProps {
   fontSize: number;
   strikethroughs: Set<string>;
   onToggleStrikethrough: (optionLabel: string) => void;
+  isFlagged?: boolean;
+  onFlag?: () => void;
   highlights?: string[];
   onAddHighlight?: (text: string) => void;
   onRemoveHighlight?: (text: string) => void;
@@ -26,75 +28,29 @@ export const QuestionCard = ({
   fontSize,
   strikethroughs,
   onToggleStrikethrough,
+  isFlagged = false,
+  onFlag,
   highlights = [],
   onAddHighlight,
   onRemoveHighlight,
 }: QuestionCardProps) => {
   const isCorrect = selectedAnswer === question.correctAnswer;
   const stemRef = useRef<HTMLDivElement>(null);
-  const splitterDraggingRef = useRef(false);
   const [imageInverted, setImageInverted] = useState(false);
   const [imageContrast, setImageContrast] = useState(100);
   const [showContrast, setShowContrast] = useState(false);
   const [showZoom, setShowZoom] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
-  const [zoomPaneWidth, setZoomPaneWidth] = useState(0);
 
   useEffect(() => {
     if (!showZoom) return;
-
-    const previousOverflow = document.body.style.overflow;
-    const root = document.documentElement;
-    document.body.style.overflow = "hidden";
-
-    const clampPaneWidth = (width: number) => {
-      const minPane = Math.min(420, Math.max(300, window.innerWidth * 0.3));
-      const maxPane = Math.max(minPane, window.innerWidth - 132 - 360);
-      return Math.min(maxPane, Math.max(minPane, width));
-    };
-
-    const initialWidth = clampPaneWidth(zoomPaneWidth || window.innerWidth * 0.5);
-    setZoomPaneWidth(initialWidth);
-    root.style.setProperty("--classic-zoom-pane-width", `${initialWidth}px`);
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") setShowZoom(false);
     };
 
-    const handlePointerMove = (event: PointerEvent) => {
-      if (!splitterDraggingRef.current) return;
-      const nextWidth = clampPaneWidth(window.innerWidth - event.clientX);
-      setZoomPaneWidth(nextWidth);
-      root.style.setProperty("--classic-zoom-pane-width", `${nextWidth}px`);
-    };
-
-    const handlePointerUp = () => {
-      if (!splitterDraggingRef.current) return;
-      splitterDraggingRef.current = false;
-      document.body.classList.remove("classic-zoom-resizing");
-    };
-
-    const handleResize = () => {
-      const nextWidth = clampPaneWidth(zoomPaneWidth || window.innerWidth * 0.5);
-      setZoomPaneWidth(nextWidth);
-      root.style.setProperty("--classic-zoom-pane-width", `${nextWidth}px`);
-    };
-
     window.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("pointermove", handlePointerMove);
-    window.addEventListener("pointerup", handlePointerUp);
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("pointermove", handlePointerMove);
-      window.removeEventListener("pointerup", handlePointerUp);
-      window.removeEventListener("resize", handleResize);
-      splitterDraggingRef.current = false;
-      document.body.classList.remove("classic-zoom-resizing");
-      document.body.style.overflow = previousOverflow;
-      root.style.removeProperty("--classic-zoom-pane-width");
-    };
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [showZoom]);
 
   useEffect(() => {
@@ -156,7 +112,6 @@ export const QuestionCard = ({
 
   const openZoom = () => {
     setZoomLevel(1);
-    setZoomPaneWidth(Math.round(window.innerWidth * 0.5));
     setShowZoom(true);
   };
 
@@ -171,30 +126,12 @@ export const QuestionCard = ({
           role="dialog"
           aria-modal="false"
           aria-label="Magnified image"
-          style={{ width: zoomPaneWidth ? `${zoomPaneWidth}px` : undefined }}
         >
-          <div
-            className="classic-image-zoom-splitter"
-            role="separator"
-            aria-orientation="vertical"
-            aria-label="Resize question and image panes"
-            title="Drag to resize"
-            onPointerDown={(event) => {
-              event.preventDefault();
-              splitterDraggingRef.current = true;
-              document.body.classList.add("classic-zoom-resizing");
-              event.currentTarget.setPointerCapture?.(event.pointerId);
-            }}
-          >
-            <span aria-hidden="true" />
-          </div>
-
           <div className="classic-image-zoom-toolbar">
             <div className="classic-image-zoom-controls" role="group" aria-label="Image zoom controls">
-              <button type="button" onClick={zoomIn}>ZOOM IN</button>
-              <button type="button" onClick={zoomOut}>ZOOM OUT</button>
-              <button type="button" onClick={resetZoom}>RESET</button>
-              <span className="classic-image-zoom-level">{Math.round(zoomLevel * 100)}%</span>
+              <button type="button" onClick={zoomIn} disabled={zoomLevel >= 3}>Zoom In</button>
+              <button type="button" onClick={zoomOut} disabled={zoomLevel <= 0.5}>Zoom Out</button>
+              <button type="button" onClick={resetZoom} disabled={zoomLevel === 1}>Reset</button>
             </div>
 
             <button
@@ -203,8 +140,8 @@ export const QuestionCard = ({
               onClick={() => setShowZoom(false)}
               aria-label="Close magnified image"
             >
-              <X size={22} strokeWidth={3} />
-              <span>CLOSE</span>
+              <span className="classic-image-zoom-close-icon"><X size={21} strokeWidth={2.5} /></span>
+              <span>Close</span>
             </button>
           </div>
 
@@ -215,7 +152,7 @@ export const QuestionCard = ({
               alt={question.imageCaption || "Magnified question image"}
               style={{
                 filter: imageFilter,
-                width: `${zoomLevel * 100}%`,
+                transform: `scale(${zoomLevel})`,
               }}
               draggable={false}
             />
@@ -235,6 +172,17 @@ export const QuestionCard = ({
         transition={{ duration: 0.12 }}
         className="classic-question-card"
       >
+        <label className={`classic-question-mark ${isFlagged ? "is-marked" : ""}`}>
+          <input
+            type="checkbox"
+            checked={isFlagged}
+            onChange={() => onFlag?.()}
+            aria-label="Mark question"
+          />
+          <Flag size={15} strokeWidth={1.8} aria-hidden="true" />
+          <span>Mark Question</span>
+        </label>
+
         <div
           ref={stemRef}
           className="classic-question-stem"
@@ -265,7 +213,7 @@ export const QuestionCard = ({
                         onClick={() => setShowContrast((value) => !value)}
                         title="Adjust image contrast"
                       >
-                        <Contrast size={25} strokeWidth={2} />
+                        <Contrast size={28} strokeWidth={1.8} />
                         <span>Contrast</span>
                       </button>
                       {showContrast ? (
@@ -288,7 +236,7 @@ export const QuestionCard = ({
                     </div>
 
                     <button type="button" onClick={openZoom} title="Magnify image">
-                      <Search size={27} strokeWidth={2} />
+                      <Search size={29} strokeWidth={1.8} />
                       <span>Zoom</span>
                     </button>
                   </div>
@@ -298,6 +246,7 @@ export const QuestionCard = ({
                       src={question.image}
                       alt={question.imageCaption || "Question image"}
                       style={{ filter: imageFilter }}
+                      draggable={false}
                     />
                   </div>
                 </div>
