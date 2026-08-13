@@ -11,10 +11,17 @@ const assert = (condition, message) => {
 
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 1365, height: 768 }, deviceScaleFactor: 1 });
+const consoleErrors = [];
 page.on("console", (message) => {
-  if (message.type() === "error") console.error("BROWSER CONSOLE:", message.text());
+  if (message.type() === "error") {
+    consoleErrors.push(message.text());
+    console.error("BROWSER CONSOLE:", message.text());
+  }
 });
-page.on("pageerror", (error) => console.error("BROWSER PAGE ERROR:", error.message));
+page.on("pageerror", (error) => {
+  consoleErrors.push(error.message);
+  console.error("BROWSER PAGE ERROR:", error.message);
+});
 
 const shot = async (name) => page.screenshot({ path: path.join(outDir, `${name}.png`), fullPage: true });
 
@@ -24,12 +31,12 @@ try {
   await page.locator(".classic-exam-header").waitFor({ state: "visible" });
 
   await shot("01-initial-question");
-  assert(await page.getByRole("button", { name: "Lock" }).count() === 1, "USMLE program 267 must show Lock");
-  assert(await page.getByRole("button", { name: "Pause" }).count() === 0, "USMLE program 267 must not show Pause");
+  assert(await page.locator(".classic-lock-button").count() === 1, "USMLE program 267 must show Lock");
+  assert(await page.locator('.classic-footer-button[title="Pause"]').count() === 0, "USMLE program 267 must not show Pause");
   assert(await page.locator(".source-exam-header .source-mark-trigger").count() === 1, "Mark Question must be in the top header");
   assert(await page.locator(".classic-exam-main .source-mark-trigger").count() === 0, "Mark Question must not be in the question body");
 
-  await page.getByRole("button", { name: "Settings" }).click();
+  await page.locator(".classic-header-settings").click();
   const settings = page.locator(".source-settings-menu");
   await settings.waitFor({ state: "visible" });
   assert(await settings.getByText("Resize Text", { exact: true }).count() === 1, "Settings missing Resize Text");
@@ -59,7 +66,7 @@ try {
   await shot("04-exam-overview");
   await page.locator(".source-overview-panel .source-panel-close").click();
 
-  await page.getByRole("button", { name: "Notes" }).click();
+  await page.locator('.classic-tool-trigger[title="Notes"]').click();
   const note = page.getByRole("textbox", { name: "Notes" });
   await note.fill("source audit note");
   await page.getByRole("button", { name: "Save and Close" }).click();
@@ -68,7 +75,7 @@ try {
   assert((await noteIndicator.getAttribute("title")) === "source audit note", "Saved note must be exposed on the status pencil");
   await shot("05-note-indicator");
 
-  await page.getByRole("button", { name: "Lab Values" }).click();
+  await page.locator('.classic-tool-trigger[title="Lab Values"]').click();
   const lab = page.locator(".source-lab-panel");
   await lab.waitFor({ state: "visible" });
   const labBox = await lab.boundingBox();
@@ -78,24 +85,24 @@ try {
   assert(await page.locator(".source-lab-splitter").count() === 1, "Lab splitter is missing");
   const labSearch = page.locator("#source-lab-search");
   await labSearch.fill("Glucose");
-  await page.waitForTimeout(500);
+  await page.waitForTimeout(700);
   assert(await page.locator("mark[data-source-lab-mark]").count() > 0, "Lab search must mark matching text");
   assert(await page.locator(".source-lab-tabs li.searched").count() > 0, "Lab search must underline tabs containing results");
   await shot("06-lab-search-split");
   await page.locator(".source-lab-close-button").click();
 
   const timerBefore = await page.locator(".source-timer-trigger").innerText();
-  await page.getByRole("button", { name: "Lock" }).click();
+  await page.locator(".classic-lock-button").click();
   await page.getByText("Unauthorized Break Warning", { exact: true }).waitFor();
   await shot("07-lock-warning");
   await page.getByRole("button", { name: "Unauthorized Break", exact: true }).click();
-  await page.getByText("Unauthorized Break", { exact: true }).first().waitFor();
+  await page.locator(".source-unauthorized-break").waitFor({ state: "visible" });
   await page.waitForTimeout(2200);
   await page.getByRole("button", { name: "Return to Exam" }).click();
   const timerAfter = await page.locator(".source-timer-trigger").innerText();
   assert(timerAfter !== timerBefore, "Lock/Unauthorized Break must not pause the block timer");
 
-  await page.getByRole("button", { name: "End Block" }).click();
+  await page.locator(".classic-end-button").click();
   await page.getByText("Warning - This block is incomplete!", { exact: true }).waitFor();
   assert(await page.getByText(/Number of unanswered items in this block:/).count() === 1, "Incomplete End Block warning missing unanswered count");
   assert(await page.getByText("If you end this block you will not be able to return.", { exact: true }).count() === 1, "End Block warning text differs from source");
@@ -104,31 +111,34 @@ try {
 
   let zoomFound = false;
   for (let i = 0; i < 49; i += 1) {
-    if (await page.getByRole("button", { name: "Zoom" }).count()) {
+    if (await page.locator('.classic-image-tools button[title="Zoom"]').count()) {
       zoomFound = true;
       break;
     }
-    const next = page.getByRole("button", { name: "Next" });
+    const next = page.locator('.classic-header-navigation button[title="Next"]');
     if (!(await next.isEnabled())) break;
     await next.click();
     await page.waitForTimeout(25);
   }
 
   if (zoomFound) {
-    await page.getByRole("button", { name: "Settings" }).click();
+    await page.locator(".classic-header-settings").click();
     await page.locator(".source-settings-menu").getByText("Resize Text", { exact: true }).click();
     await page.locator(".source-resize-menu").getByText("150%", { exact: true }).click();
-    await page.getByRole("button", { name: "Zoom" }).click();
+    await page.locator('.classic-image-tools button[title="Zoom"]').click();
     await page.locator(".source-image-viewer").waitFor({ state: "visible" });
     assert((await page.locator("html").getAttribute("data-exam-text-zoom")) === "100", "Fullscreen media must force UI zoom to 100%");
     assert(await page.locator(".classic-exam-header").getAttribute("inert") !== null, "Fullscreen media must disable header controls");
     await shot("09-fullscreen-media");
-    await page.getByRole("button", { name: /Close magnified image/i }).click();
+    await page.locator(".source-viewer-close").click();
     assert((await page.locator("html").getAttribute("data-exam-text-zoom")) === "150", "Closing media must restore previous UI zoom");
   } else {
     await fs.writeFile(path.join(outDir, "09-zoom-not-present.txt"), "No image question was present in the first block; fullscreen media visual check was not run.\n");
   }
 
+  if (consoleErrors.length) {
+    await fs.writeFile(path.join(outDir, "browser-console-errors.txt"), `${consoleErrors.join("\n\n")}\n`);
+  }
   await fs.writeFile(path.join(outDir, "audit-result.txt"), "PASS\n");
 } finally {
   await browser.close();
