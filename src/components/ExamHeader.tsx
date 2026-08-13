@@ -33,7 +33,7 @@ interface ExamHeaderProps {
   canPrevious: boolean;
   canNext: boolean;
   note: string;
-  onNoteChange: (note: string) => void;
+  onNoteChange: (itemId: number, note: string) => void;
 }
 
 const formatClock = (seconds: number) => {
@@ -149,7 +149,7 @@ export const ExamHeader = ({
 
         <div className="classic-header-tools" aria-label="Exam tools">
           <div className="classic-header-tool-slot"><CoordinatedLabValues /></div>
-          <div className="classic-header-tool-slot"><Notes notes={note} onNotesChange={onNoteChange} /></div>
+          <div className="classic-header-tool-slot"><Notes itemId={currentQuestion} notes={note} onNotesChange={onNoteChange} /></div>
           <div className="classic-header-tool-slot"><Calculator /></div>
           <div className="classic-settings-wrap">
             <button
