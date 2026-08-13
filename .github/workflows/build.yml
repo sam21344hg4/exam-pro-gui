@@ -2,7 +2,9 @@ name: Build
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+      - repair/source-audit-2026-08-13
   workflow_dispatch:
 
 jobs:
