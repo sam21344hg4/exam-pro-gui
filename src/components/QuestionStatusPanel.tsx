@@ -4,6 +4,7 @@ interface QuestionStatusPanelProps {
   currentQuestion: number;
   answers: Record<number, string>;
   flagged: Set<number>;
+  notes: Record<number, string>;
   onNavigate: (questionNumber: number) => void;
 }
 
@@ -13,6 +14,7 @@ export const QuestionStatusPanel = ({
   currentQuestion,
   answers,
   flagged,
+  notes,
   onNavigate,
 }: QuestionStatusPanelProps) => {
   const items = Array.from(
@@ -32,6 +34,7 @@ export const QuestionStatusPanel = ({
           const isCurrent = questionNumber === currentQuestion;
           const isAnswered = answers[questionNumber] !== undefined;
           const isFlagged = flagged.has(questionNumber);
+          const hasNote = Boolean(notes[questionNumber]?.trim());
 
           return (
             <button
@@ -40,11 +43,14 @@ export const QuestionStatusPanel = ({
               className={`classic-status-item ${isCurrent ? "is-current" : ""} ${isAnswered ? "is-answered" : ""}`}
               onClick={() => onNavigate(questionNumber)}
               aria-current={isCurrent ? "true" : undefined}
-              title={`Item ${displayNumber}${isAnswered ? ", answered" : ", unanswered"}${isFlagged ? ", marked" : ""}`}
+              title={`Item ${displayNumber}${isAnswered ? ", answered" : ", unanswered"}${isFlagged ? ", marked" : ""}${hasNote ? `, note: ${notes[questionNumber]}` : ""}`}
             >
               <span className="classic-status-dot" aria-hidden="true" />
               <span>{displayNumber}</span>
-              <span className="classic-status-flag" aria-hidden="true">{isFlagged ? "⚑" : ""}</span>
+              <span className="classic-status-icons" aria-hidden="true">
+                {hasNote ? <span className="classic-status-note">✎</span> : null}
+                {isFlagged ? <span className="classic-status-flag">⚑</span> : null}
+              </span>
             </button>
           );
         })}
