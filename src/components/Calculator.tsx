@@ -1,23 +1,22 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Calculator as CalculatorIcon } from "lucide-react";
+import { useExamUI } from "./ExamUIProvider";
 
 export const Calculator = () => {
-  const [open, setOpen] = useState(false);
+  const { activePopup, calculatorOpen, toggleCalculator } = useExamUI();
   const [display, setDisplay] = useState("0");
   const [previousValue, setPreviousValue] = useState<number | null>(null);
   const [operation, setOperation] = useState<string | null>(null);
   const [waitingForOperand, setWaitingForOperand] = useState(false);
   const [memoryValue, setMemoryValue] = useState(0);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const wasOpenRef = useRef(false);
 
   useEffect(() => {
-    if (!open) return;
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [open]);
+    if (wasOpenRef.current && !calculatorOpen) triggerRef.current?.focus();
+    wasOpenRef.current = calculatorOpen;
+  }, [calculatorOpen]);
 
   const numericDisplay = () => {
     const value = Number.parseFloat(display);
@@ -105,18 +104,11 @@ export const Calculator = () => {
   };
   const memoryClear = () => setMemoryValue(0);
 
-  const openPanel = () => {
-    window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
-    setOpen(true);
-  };
-
-  const panel = open
+  const panel = calculatorOpen
     ? createPortal(
-        <div className="nbme-calculator-panel" role="dialog" aria-label="Calculator">
+        <div className={`nbme-calculator-panel${activePopup === "notes" ? " with-notes" : ""}`} role="dialog" aria-label="Calculator" aria-modal="false">
           <div className={`nbme-calc-display${memoryValue !== 0 ? " has-memory" : ""}`}>
-            <span className="nbme-calc-equation">
-              {previousValue !== null ? `${previousValue} ${operation || ""}` : "\u00a0"}
-            </span>
+            <span className="nbme-calc-equation">{previousValue !== null ? `${previousValue} ${operation || ""}` : "\u00a0"}</span>
             <span className="nbme-calc-operand">{display}</span>
           </div>
           <table className="nbme-calc-table" aria-label="Calculator keypad">
@@ -165,13 +157,7 @@ export const Calculator = () => {
 
   return (
     <>
-      <button
-        type="button"
-        className="classic-tool-trigger"
-        title="Calculator"
-        aria-expanded={open}
-        onClick={() => (open ? setOpen(false) : openPanel())}
-      >
+      <button ref={triggerRef} type="button" className="classic-tool-trigger" title="Calculator" aria-expanded={calculatorOpen} onClick={toggleCalculator}>
         <span className="classic-tool-square-icon"><CalculatorIcon size={24} strokeWidth={2.3} /></span>
         <span>Calculator</span>
       </button>
