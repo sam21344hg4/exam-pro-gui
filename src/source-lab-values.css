@@ -1,0 +1,278 @@
+/* Lab Values styling matched to the uploaded source HTML. */
+
+.source-lab-panel {
+  position: fixed;
+  z-index: 90;
+  top: 62px;
+  right: 0;
+  bottom: 62px;
+  width: min(540px, 34vw);
+  min-width: 380px;
+  overflow: hidden;
+  background: #fff;
+  color: #000;
+  border-left: 1px solid #000;
+  box-sizing: border-box;
+  font: normal normal normal 12pt/1.4 "Arial Unicode MS", Arial, Helvetica, "Lucida Sans Unicode", "Trebuchet MS", sans-serif;
+}
+
+body:has(.source-lab-panel) .classic-exam-main {
+  right: min(540px, 34vw) !important;
+}
+
+.source-lab-top-panel {
+  position: relative;
+  width: 100%;
+  height: 129px;
+  overflow: visible;
+  background: #fff;
+  color: #000;
+  box-sizing: border-box;
+}
+
+.source-lab-close-row {
+  width: 100%;
+  height: 31px;
+  padding-bottom: 25px;
+  text-align: right;
+  box-sizing: border-box;
+}
+
+.source-lab-close-button {
+  position: absolute;
+  z-index: 997;
+  right: 15px;
+  top: 6px;
+  width: 25px;
+  height: 25px;
+  margin: 0;
+  padding: 1px;
+  border: 1px solid #004976;
+  border-radius: 5px;
+  background: #004976;
+  color: #fff;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.source-lab-close-button svg {
+  display: block;
+  width: 21px;
+  height: 21px;
+  stroke: #fff;
+  stroke-width: 2.5;
+}
+
+.source-lab-close-button:hover svg {
+  stroke: #fff;
+}
+
+.source-lab-close-button:focus-visible {
+  outline: 2px dotted #004976;
+  outline-offset: 2px;
+}
+
+.source-lab-controls {
+  height: 54px;
+  white-space: nowrap;
+}
+
+.source-lab-search-wrapper {
+  position: relative;
+  width: 200px;
+  margin: 0;
+  padding: 10px;
+  display: inline-block;
+  vertical-align: middle;
+  box-sizing: border-box;
+}
+
+.source-lab-search-wrapper input {
+  font: 13px Arial, Helvetica, sans-serif;
+}
+
+.source-lab-clear {
+  position: absolute;
+  top: 8px;
+  right: 20px;
+  width: 20px;
+  height: 22px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #000;
+  font: 12px/20px Arial, Helvetica, sans-serif;
+  cursor: pointer;
+}
+
+.source-lab-interval {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.source-lab-interval input {
+  margin: 0 5px 0 0;
+}
+
+.source-lab-interval label {
+  font-size: .7em;
+  cursor: pointer;
+}
+
+.source-lab-tabs {
+  list-style: none;
+  color: #000;
+  margin: 16px 0 0 0;
+  padding-left: 9px;
+  padding-bottom: 0;
+  display: block;
+  white-space: nowrap;
+}
+
+.source-lab-tabs li {
+  font-size: .7em;
+  display: inline-flex;
+  border: 1px solid #BBC;
+  border-collapse: collapse;
+  padding: 2px 5px;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+  cursor: pointer;
+  background: #fff;
+  color: #000;
+  line-height: normal;
+  user-select: none;
+}
+
+.source-lab-tabs li.active {
+  background: #D7DCED;
+  font-weight: bold;
+}
+
+.source-lab-tabs li:focus-visible {
+  outline: 2px solid #0096d6;
+  outline-offset: 1px;
+}
+
+.source-lab-container {
+  position: absolute;
+  top: 129px;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  overflow: auto;
+  background: #D7DCED;
+  color: #000;
+}
+
+.source-lab-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #D7DCED;
+  color: #000;
+  font-size: 1em;
+}
+
+.source-lab-table td {
+  padding: 2px;
+  border-top: 1px solid #BBC;
+  background: #D7DCED;
+  color: #000;
+}
+
+.source-lab-table th {
+  background: #D7DCED;
+  color: #000;
+}
+
+.source-lab-table .table-cell-header {
+  width: 200px;
+  padding-left: 3px;
+  vertical-align: top;
+  font-size: .7em;
+  font-weight: bold;
+  text-align: left;
+}
+
+.source-lab-table .table-cell-header2,
+.source-lab-table .table-cell-header3 {
+  vertical-align: top;
+  font-size: .7em;
+  font-weight: bold;
+  text-align: center;
+}
+
+.source-lab-table .table-cell-1 {
+  width: 200px;
+  padding-left: 3px;
+  vertical-align: top;
+  font-size: .7em;
+}
+
+.source-lab-table .table-cell-2,
+.source-lab-table .table-cell-3 {
+  vertical-align: top;
+  font-size: .7em;
+}
+
+.source-lab-table .table-cell-1-indent1,
+.source-lab-table .table-cell-2-indent1 {
+  padding-left: 20px;
+  vertical-align: top;
+  font-size: .7em;
+}
+
+.source-lab-table tr > :nth-child(3) {
+  display: none;
+}
+
+.source-lab-table tr > :nth-child(3).isVisible {
+  display: table-cell;
+}
+
+.source-lab-searched-row > td,
+.source-lab-searched-row > th {
+  text-decoration: underline;
+  text-decoration-color: yellow;
+  text-decoration-thickness: 4px;
+  text-underline-offset: 1px;
+}
+
+@media (max-width: 1120px) {
+  .source-lab-panel {
+    width: min(540px, 46vw);
+  }
+
+  body:has(.source-lab-panel) .classic-exam-main {
+    right: min(540px, 46vw) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .source-lab-panel {
+    left: 105px;
+    width: auto;
+    min-width: 0;
+  }
+
+  body:has(.source-lab-panel) .classic-exam-main {
+    right: 0 !important;
+  }
+
+  .source-lab-interval {
+    display: block;
+    margin-left: 10px;
+  }
+
+  .source-lab-top-panel {
+    height: 150px;
+  }
+
+  .source-lab-container {
+    top: 150px;
+  }
+}
