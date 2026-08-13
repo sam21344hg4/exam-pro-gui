@@ -8,5 +8,6 @@ import "./starttest-zoom-fix.css";
 import "./starttest-answer-fix.css";
 import "./source-lab-values.css";
 import "./nbme-driver-source.css";
+import "./source-help.css";
 
 createRoot(document.getElementById("root")!).render(<App />);
