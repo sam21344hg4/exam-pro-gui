@@ -1,55 +1,57 @@
-import { MouseEvent, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
+import { FlaskConical } from "lucide-react";
 import { LabValues } from "./LabValues";
 import { useExamUI } from "./ExamUIProvider";
 
-/**
- * LabValues contains the source reference table data and still owns its rendered
- * exhibit state. This bridge keeps that legacy component synchronized with the
- * single exam UI coordinator without duplicating the laboratory dataset.
- */
+/** Keep the source lab dataset intact while replacing its legacy toolbar trigger. */
 export const CoordinatedLabValues = () => {
-  const wrapperRef = useRef<HTMLDivElement>(null);
+  const legacyWrapperRef = useRef<HTMLDivElement>(null);
+  const visibleTriggerRef = useRef<HTMLButtonElement>(null);
   const wasOpenRef = useRef(false);
   const { activePopup, openPopup, closePopup } = useExamUI();
+  const open = activePopup === "lab";
 
-  const getTrigger = () => wrapperRef.current?.querySelector<HTMLButtonElement>("button.classic-tool-trigger");
+  const getLegacyTrigger = () => legacyWrapperRef.current?.querySelector<HTMLButtonElement>("button.classic-tool-trigger");
 
   useEffect(() => {
-    const trigger = getTrigger();
-    if (!trigger) return;
+    const legacyTrigger = getLegacyTrigger();
+    if (!legacyTrigger) return;
 
     const observer = new MutationObserver(() => {
-      const isOpen = trigger.getAttribute("aria-expanded") === "true";
-      if (isOpen && activePopup !== "lab") openPopup("lab");
-      if (!isOpen && activePopup === "lab") closePopup("lab");
-      if (wasOpenRef.current && !isOpen) trigger.focus();
-      wasOpenRef.current = isOpen;
+      const legacyOpen = legacyTrigger.getAttribute("aria-expanded") === "true";
+      if (!legacyOpen && activePopup === "lab") closePopup("lab");
+      if (wasOpenRef.current && !legacyOpen) visibleTriggerRef.current?.focus();
+      wasOpenRef.current = legacyOpen;
     });
 
-    wasOpenRef.current = trigger.getAttribute("aria-expanded") === "true";
-    observer.observe(trigger, { attributes: true, attributeFilter: ["aria-expanded"] });
+    wasOpenRef.current = legacyTrigger.getAttribute("aria-expanded") === "true";
+    observer.observe(legacyTrigger, { attributes: true, attributeFilter: ["aria-expanded"] });
     return () => observer.disconnect();
   }, [activePopup]);
 
   useEffect(() => {
-    const trigger = getTrigger();
-    if (!trigger) return;
-    const isOpen = trigger.getAttribute("aria-expanded") === "true";
-    if (activePopup !== "lab" && isOpen) trigger.click();
-  }, [activePopup]);
+    const legacyTrigger = getLegacyTrigger();
+    if (!legacyTrigger) return;
+    const legacyOpen = legacyTrigger.getAttribute("aria-expanded") === "true";
 
-  const onClickCapture = (event: MouseEvent<HTMLDivElement>) => {
-    const trigger = (event.target as HTMLElement).closest<HTMLButtonElement>("button.classic-tool-trigger");
-    if (!trigger || !wrapperRef.current?.contains(trigger)) return;
+    if (open && !legacyOpen) legacyTrigger.click();
+    if (!open && legacyOpen) legacyTrigger.click();
+  }, [open]);
 
-    const isOpen = trigger.getAttribute("aria-expanded") === "true";
-    if (isOpen) closePopup("lab");
+  const toggle = () => {
+    if (open) closePopup("lab");
     else openPopup("lab");
   };
 
   return (
-    <div ref={wrapperRef} className="classic-lab-coordinator" onClickCapture={onClickCapture}>
-      <LabValues />
-    </div>
+    <>
+      <button ref={visibleTriggerRef} type="button" className="classic-tool-trigger" title="Lab Values" aria-expanded={open} onClick={toggle}>
+        <span className="classic-tool-square-icon"><FlaskConical size={23} strokeWidth={2.1} /></span>
+        <span>Lab Values</span>
+      </button>
+      <div ref={legacyWrapperRef} className="source-legacy-lab-trigger" aria-hidden="true">
+        <LabValues />
+      </div>
+    </>
   );
 };
