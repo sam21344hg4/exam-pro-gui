@@ -16,7 +16,7 @@ export interface ExamData {
   questions: Question[];
   /** StartTest program id. The captured USMLE interface is program 267. */
   programId: string;
-  /** Total authorized break time for the test day. */
+  /** Explicit authorized break allotment. Do not infer this from tutorial examples. */
   breakTimeMinutes: number;
 }
 
@@ -35,7 +35,7 @@ export const availableExams: ExamData[] = [
     ],
     questions: examQuestions,
     programId: "267",
-    breakTimeMinutes: 30,
+    breakTimeMinutes: 0,
   },
   {
     id: "nbme25",
