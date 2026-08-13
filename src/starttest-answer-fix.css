@@ -1,0 +1,100 @@
+/* Answer controls matched to the saved table-based exam reference. */
+
+.classic-options {
+  width: fit-content !important;
+  max-width: 100% !important;
+  margin: 20px 0 0 !important;
+  padding: 10px 0 !important;
+  display: inline-flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 0 !important;
+  background: #fff !important;
+  border: 1px solid #004976 !important;
+  border-bottom-width: 5px !important;
+  box-sizing: border-box !important;
+}
+
+.classic-option-row {
+  width: 100% !important;
+  min-height: 30px !important;
+  padding: 0 5px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: stretch !important;
+  gap: 5px !important;
+  box-sizing: border-box !important;
+}
+
+.classic-option-row:hover {
+  background: #d7dced !important;
+}
+
+.classic-option {
+  flex: 1 1 auto !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 28px !important;
+  padding: 4px 0 !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+  gap: 5px !important;
+  text-align: left !important;
+  cursor: pointer !important;
+}
+
+.classic-option:disabled {
+  cursor: default !important;
+}
+
+.classic-option-text {
+  min-width: 0 !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere;
+}
+
+.classic-strike-button {
+  flex: 0 0 24px !important;
+  margin-left: 3px !important;
+}
+
+.classic-proceed-button {
+  min-width: 50px;
+  margin: 20px 0 0 8px;
+  padding: 0 8px;
+  border: 2px solid #4b505e;
+  border-color: #888 #4b505e #4b505e #888;
+  border-radius: 5px;
+  background: #0077c8;
+  color: #fff;
+  cursor: pointer;
+  text-align: center;
+  text-shadow: 0 -1px rgba(0, 0, 0, .25);
+  vertical-align: middle;
+  white-space: nowrap;
+  font: 14px/25px Arial, Helvetica, sans-serif;
+  text-decoration: none;
+}
+
+.classic-proceed-button:hover,
+.classic-proceed-button:focus-visible {
+  background: linear-gradient(#004976, #5490cc);
+}
+
+.classic-proceed-button:focus-visible {
+  outline: 2px solid #000;
+  outline-offset: 2px;
+}
+
+/* Image questions keep the answer fieldset content-sized inside the left column. */
+@media (min-width: 1280px) {
+  .classic-question-card:has(.classic-question-image) .classic-options {
+    width: fit-content !important;
+    max-width: calc(50% - 18px) !important;
+  }
+
+  .classic-question-card:has(.classic-question-image) .classic-proceed-button {
+    max-width: calc(50% - 18px);
+  }
+}
