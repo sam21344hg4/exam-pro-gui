@@ -103,6 +103,7 @@ export const ExamHeader = ({
   const [showColorMenu, setShowColorMenu] = useState(false);
   const timerPanelRef = useRef<HTMLElement>(null);
   const overviewPanelRef = useRef<HTMLElement>(null);
+  const reducedTimeWarnedBlocksRef = useRef<Set<number>>(new Set());
 
   const itemInSection = currentQuestion - sectionStart + 1;
   const itemsInSection = Math.max(sectionEnd - sectionStart + 1, 0);
@@ -132,6 +133,14 @@ export const ExamHeader = ({
     window.addEventListener("keydown", onKeyDown, true);
     return () => window.removeEventListener("keydown", onKeyDown, true);
   }, [activePopup, showResizeMenu, showColorMenu]);
+
+  useEffect(() => {
+    if (!showTimer || currentSection <= 1 || itemInSection !== 1) return;
+    if (timeRemaining >= sectionTimeLimitSeconds) return;
+    if (activePopup !== null || reducedTimeWarnedBlocksRef.current.has(currentSection)) return;
+    reducedTimeWarnedBlocksRef.current.add(currentSection);
+    openPopup("reducedTime");
+  }, [showTimer, currentSection, itemInSection, timeRemaining, sectionTimeLimitSeconds, activePopup, openPopup]);
 
   const confirmEndBlock = () => {
     closePopup("end");
@@ -309,6 +318,14 @@ export const ExamHeader = ({
           <div className="source-alert-title" id="source-unauthorized-break-title">Unauthorized Break</div>
           <div className="source-alert-copy"><h1>* * * Unauthorized Break * * *</h1><p>WARNING</p><p>The clock for this block continues to run.</p></div>
           <div className="source-alert-actions"><button type="button" autoFocus onClick={() => closePopup("unauthorizedBreak")}>Return to Exam</button></div>
+        </section>
+      ) : null}
+
+      {activePopup === "reducedTime" ? (
+        <section className="source-alert-dialog source-reduced-time" role="alertdialog" aria-modal="true" aria-labelledby="source-reduced-time-title">
+          <div className="source-alert-title" id="source-reduced-time-title">This block has reduced time!</div>
+          <div className="source-alert-copy">You have exceeded your available break time. You have only <span id="timeLeft">{formatCompactClock(dayRemaining)}</span> remaining for the entire exam.</div>
+          <div className="source-alert-actions"><button type="button" autoFocus onClick={() => closePopup("reducedTime")}>Return to Exam</button></div>
         </section>
       ) : null}
 
