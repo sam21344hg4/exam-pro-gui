@@ -1,4 +1,3 @@
-import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface OptionButtonProps {
@@ -25,43 +24,56 @@ export const OptionButton = ({
   fontSize = 18,
   isStrikethrough = false,
   onToggleStrikethrough,
-}: OptionButtonProps) => (
-  <div className="classic-option-row">
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      className={cn(
-        "classic-option",
-        isSelected && "is-selected",
-        showResult && isCorrect && "is-correct",
-        showResult && isSelected && !isCorrect && "is-incorrect",
-        isStrikethrough && !showResult && "is-struck"
-      )}
-      aria-pressed={isSelected}
-    >
-      <span className="classic-radio" aria-hidden="true">
-        {isSelected ? <span className="classic-radio-dot" /> : null}
-      </span>
-      <span
-        className={cn("classic-option-text", isStrikethrough && !showResult && "is-struck")}
-        style={{ fontSize: `${Math.max(fontSize - 2, 14)}px` }}
-      >
-        <strong>{label})</strong> {text}
-      </span>
-    </button>
+}: OptionButtonProps) => {
+  const handleContextMenu = (event: React.MouseEvent) => {
+    if (showResult || !onToggleStrikethrough) return;
+    event.preventDefault();
+    onToggleStrikethrough();
+  };
 
-    {!showResult && onToggleStrikethrough ? (
+  return (
+    <div className="classic-option-row">
       <button
         type="button"
-        className="classic-strike-button"
-        aria-label={isStrikethrough ? `Restore option ${label}` : `Strikeout option ${label}`}
-        aria-pressed={isStrikethrough}
-        title={isStrikethrough ? `Restore option ${label}` : `Strikeout option ${label}`}
-        onClick={onToggleStrikethrough}
+        onClick={onClick}
+        onContextMenu={handleContextMenu}
+        disabled={disabled}
+        className={cn(
+          "classic-option",
+          isSelected && "is-selected",
+          showResult && isCorrect && "is-correct",
+          showResult && isSelected && !isCorrect && "is-incorrect",
+          isStrikethrough && !showResult && "is-struck"
+        )}
+        aria-pressed={isSelected}
       >
-        <X size={15} strokeWidth={2.2} />
+        <span className="classic-radio" aria-hidden="true">
+          {isSelected ? <span className="classic-radio-dot" /> : null}
+        </span>
+        <span
+          className={cn("classic-option-text", isStrikethrough && !showResult && "is-struck")}
+          style={{ fontSize: `${Math.max(fontSize - 2, 14)}px` }}
+        >
+          <strong>{label})</strong> {text}
+        </span>
       </button>
-    ) : null}
-  </div>
-);
+
+      {!showResult && onToggleStrikethrough ? (
+        <button
+          type="button"
+          className="classic-strike-button"
+          aria-label={isStrikethrough ? `Remove strikeout from option ${label}` : `Strike out option ${label}`}
+          aria-pressed={isStrikethrough}
+          title={isStrikethrough ? `Remove strikeout from option ${label}` : `Strike out option ${label}`}
+          onClick={onToggleStrikethrough}
+          onContextMenu={(event) => {
+            event.preventDefault();
+            onToggleStrikethrough();
+          }}
+        >
+          <span className="classic-strike-glyph" aria-hidden="true">ab</span>
+        </button>
+      ) : null}
+    </div>
+  );
+};
