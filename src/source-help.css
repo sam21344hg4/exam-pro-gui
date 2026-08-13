@@ -90,7 +90,7 @@
   left: 50%;
   width: min(1000px, calc(100vw - 24px));
   height: min(800px, calc(100vh - 30px));
-  margin-left: calc(-1 * min(500px, calc((100vw - 24px) / 2)));
+  transform: translateX(-50%);
   overflow: hidden;
   border: 2px solid #000;
   border-radius: 5px;
@@ -210,11 +210,6 @@
 
 .source-help-blue td {
   background: #d9f4fb;
-}
-
-/* Keep source Help above other tools without dimming or hiding the exam. */
-.classic-modal-backdrop:has(+ .source-help-container) {
-  display: none !important;
 }
 
 /* Minimal theme hooks for the source Settings entries. */
