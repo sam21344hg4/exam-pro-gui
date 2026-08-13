@@ -8,6 +8,7 @@ interface QuestionStatusPanelProps {
   flagged: Set<number>;
   notes: Record<number, string>;
   onNavigate: (questionNumber: number) => void;
+  canNavigate?: (questionNumber: number) => boolean;
 }
 
 export const QuestionStatusPanel = ({
@@ -18,6 +19,7 @@ export const QuestionStatusPanel = ({
   flagged,
   notes,
   onNavigate,
+  canNavigate = () => true,
 }: QuestionStatusPanelProps) => {
   const items = Array.from(
     { length: Math.max(sectionEnd - sectionStart + 1, 0) },
@@ -26,10 +28,7 @@ export const QuestionStatusPanel = ({
 
   return (
     <aside className="classic-status-panel" aria-label="Question Status">
-      <div className="classic-status-title">
-        <span>Question Status</span>
-        <span aria-hidden="true">ⓘ</span>
-      </div>
+      <div className="classic-status-title"><span>Question Status</span><span aria-hidden="true">ⓘ</span></div>
       <div className="classic-status-list">
         {items.map((questionNumber) => {
           const displayNumber = questionNumber - sectionStart + 1;
@@ -37,21 +36,24 @@ export const QuestionStatusPanel = ({
           const isAnswered = answers[questionNumber] !== undefined;
           const isFlagged = flagged.has(questionNumber);
           const note = notes[questionNumber]?.trim() || "";
+          const allowed = canNavigate(questionNumber);
 
           return (
             <button
               key={questionNumber}
               type="button"
-              className={`classic-status-item ${isCurrent ? "is-current" : ""} ${isAnswered ? "is-answered" : ""}`}
-              onClick={() => onNavigate(questionNumber)}
+              className={`classic-status-item ${isCurrent ? "is-current" : ""} ${isAnswered ? "is-answered" : ""} ${!allowed ? "is-locked" : ""}`}
+              onClick={() => allowed && onNavigate(questionNumber)}
               aria-current={isCurrent ? "true" : undefined}
-              title={`Item ${displayNumber}${isAnswered ? ", answered" : ", unanswered"}${isFlagged ? ", marked" : ""}${note ? `, note: ${note}` : ""}`}
+              aria-disabled={!allowed}
+              disabled={!allowed}
+              title={`Item ${displayNumber}${isAnswered ? ", answered" : ", unanswered"}${isFlagged ? ", marked" : ""}`}
             >
               <span className="classic-status-dot" aria-hidden="true" />
               <span>{displayNumber}</span>
-              <span className="classic-status-icons" aria-hidden="true">
-                {note ? <Pencil className="classic-status-note" /> : null}
-                {isFlagged ? <Flag className="classic-status-flag" /> : null}
+              <span className="classic-status-icons">
+                {note ? <span className="classic-status-note-wrap" title={note} aria-label={`Note: ${note}`}><Pencil className="classic-status-note" aria-hidden="true" /></span> : null}
+                {isFlagged ? <Flag className="classic-status-flag" aria-label="Marked" /> : null}
               </span>
             </button>
           );
