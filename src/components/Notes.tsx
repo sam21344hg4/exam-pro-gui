@@ -46,15 +46,18 @@ export const Notes = ({ itemId, notes, onNotesChange }: NotesProps) => {
     }
   }, [resolvedItemId, notes, open]);
 
-  useEffect(() => {
-    if (wasOpenRef.current && !open) triggerRef.current?.focus();
-    wasOpenRef.current = open;
-  }, [open]);
-
   const persistDraft = () => {
     const value = draftRef.current;
     commitNote(openItemRef.current, value.trim() ? value : "");
   };
+
+  useEffect(() => {
+    if (wasOpenRef.current && !open) {
+      persistDraft();
+      triggerRef.current?.focus();
+    }
+    wasOpenRef.current = open;
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
