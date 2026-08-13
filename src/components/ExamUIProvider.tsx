@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, ReactNode, useContext, useEffect, useMemo, useRef, useState } from "react";
 
 export type ExamPopup =
   | "lab"
@@ -9,6 +9,8 @@ export type ExamPopup =
   | "overview"
   | "end"
   | "zoom"
+  | "lockWarning"
+  | "unauthorizedBreak"
   | null;
 
 interface ExamUIContextValue {
@@ -17,6 +19,7 @@ interface ExamUIContextValue {
   showStrikeout: boolean;
   textZoom: 100 | 125 | 150 | 200;
   darkTheme: boolean;
+  isBlockingModal: boolean;
   openPopup: (popup: Exclude<ExamPopup, null>) => void;
   closePopup: (popup?: Exclude<ExamPopup, null>) => void;
   togglePopup: (popup: Exclude<ExamPopup, null>) => void;
@@ -38,6 +41,9 @@ export const ExamUIProvider = ({ children }: { children: ReactNode }) => {
   const [showStrikeout, setShowStrikeout] = useState(true);
   const [textZoom, setTextZoom] = useState<100 | 125 | 150 | 200>(100);
   const [darkTheme, setDarkTheme] = useState(false);
+  const zoomBeforeMediaRef = useRef<100 | 125 | 150 | 200>(100);
+
+  const isBlockingModal = activePopup === "help" || activePopup === "end" || activePopup === "lockWarning" || activePopup === "unauthorizedBreak";
 
   useEffect(() => {
     document.body.classList.toggle("classic-show-strikeout", showStrikeout);
@@ -61,6 +67,8 @@ export const ExamUIProvider = ({ children }: { children: ReactNode }) => {
 
   const openPopup = (popup: Exclude<ExamPopup, null>) => {
     if (popup === "zoom") {
+      zoomBeforeMediaRef.current = textZoom;
+      setTextZoom(100);
       setSuspendedPopup(activePopup === "lab" ? "lab" : null);
       setActivePopup("zoom");
       setCalculatorOpen(false);
@@ -75,9 +83,12 @@ export const ExamUIProvider = ({ children }: { children: ReactNode }) => {
   const closePopup = (popup?: Exclude<ExamPopup, null>) => {
     setActivePopup((current) => {
       if (popup && current !== popup) return current;
-      if (current === "zoom" && suspendedPopup === "lab") {
-        setSuspendedPopup(null);
-        return "lab";
+      if (current === "zoom") {
+        setTextZoom(zoomBeforeMediaRef.current);
+        if (suspendedPopup === "lab") {
+          setSuspendedPopup(null);
+          return "lab";
+        }
       }
       setSuspendedPopup(null);
       return null;
@@ -85,6 +96,7 @@ export const ExamUIProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const dismissAllTools = () => {
+    if (activePopup === "zoom") setTextZoom(zoomBeforeMediaRef.current);
     setSuspendedPopup(null);
     setActivePopup(null);
     setCalculatorOpen(false);
@@ -111,7 +123,7 @@ export const ExamUIProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
-      if (activePopup === "notes") return;
+      if (activePopup === "notes" || activePopup === "unauthorizedBreak") return;
 
       if (activePopup) {
         event.preventDefault();
@@ -135,6 +147,7 @@ export const ExamUIProvider = ({ children }: { children: ReactNode }) => {
     showStrikeout,
     textZoom,
     darkTheme,
+    isBlockingModal,
     openPopup,
     closePopup,
     togglePopup,
@@ -145,7 +158,7 @@ export const ExamUIProvider = ({ children }: { children: ReactNode }) => {
     setShowStrikeout,
     setTextZoom,
     setDarkTheme,
-  }), [activePopup, calculatorOpen, showStrikeout, textZoom, darkTheme, suspendedPopup]);
+  }), [activePopup, calculatorOpen, showStrikeout, textZoom, darkTheme, isBlockingModal, suspendedPopup]);
 
   return <ExamUIContext.Provider value={value}>{children}</ExamUIContext.Provider>;
 };
