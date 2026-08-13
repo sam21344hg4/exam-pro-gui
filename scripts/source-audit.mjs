@@ -49,6 +49,7 @@ try {
   const menuBox = await settings.boundingBox();
   const submenuBox = await submenu.boundingBox();
   assert(menuBox && submenuBox && submenuBox.x >= menuBox.x + menuBox.width - 2, "Resize Text submenu must open to the right");
+  assert(submenuBox && submenuBox.x + submenuBox.width <= 1365, "Resize Text submenu must remain inside the viewport");
   await shot("02-settings-right-submenu");
   await page.mouse.click(500, 300);
   assert(await settings.count() === 0, "Settings must collapse on outside click");
@@ -66,7 +67,7 @@ try {
   await shot("04-exam-overview");
   await page.locator(".source-overview-panel .source-panel-close").click();
 
-  await page.locator('.classic-tool-trigger[title="Notes"]').click();
+  await page.locator('.classic-header-tool-slot > .classic-tool-trigger[title="Notes"]').click();
   const note = page.getByRole("textbox", { name: "Notes" });
   await note.fill("source audit note");
   await page.getByRole("button", { name: "Save and Close" }).click();
@@ -75,7 +76,7 @@ try {
   assert((await noteIndicator.getAttribute("title")) === "source audit note", "Saved note must be exposed on the status pencil");
   await shot("05-note-indicator");
 
-  await page.locator('.classic-tool-trigger[title="Lab Values"]').click();
+  await page.locator('.classic-header-tool-slot > .classic-tool-trigger[title="Lab Values"]').click();
   const lab = page.locator(".source-lab-panel");
   await lab.waitFor({ state: "visible" });
   const labBox = await lab.boundingBox();
@@ -136,9 +137,7 @@ try {
     await fs.writeFile(path.join(outDir, "09-zoom-not-present.txt"), "No image question was present in the first block; fullscreen media visual check was not run.\n");
   }
 
-  if (consoleErrors.length) {
-    await fs.writeFile(path.join(outDir, "browser-console-errors.txt"), `${consoleErrors.join("\n\n")}\n`);
-  }
+  if (consoleErrors.length) await fs.writeFile(path.join(outDir, "browser-console-errors.txt"), `${consoleErrors.join("\n\n")}\n`);
   await fs.writeFile(path.join(outDir, "audit-result.txt"), "PASS\n");
 } finally {
   await browser.close();
