@@ -1,3 +1,5 @@
+import { Flag, Pencil } from "lucide-react";
+
 interface QuestionStatusPanelProps {
   sectionStart: number;
   sectionEnd: number;
@@ -34,7 +36,7 @@ export const QuestionStatusPanel = ({
           const isCurrent = questionNumber === currentQuestion;
           const isAnswered = answers[questionNumber] !== undefined;
           const isFlagged = flagged.has(questionNumber);
-          const hasNote = Boolean(notes[questionNumber]?.trim());
+          const note = notes[questionNumber]?.trim() || "";
 
           return (
             <button
@@ -43,13 +45,13 @@ export const QuestionStatusPanel = ({
               className={`classic-status-item ${isCurrent ? "is-current" : ""} ${isAnswered ? "is-answered" : ""}`}
               onClick={() => onNavigate(questionNumber)}
               aria-current={isCurrent ? "true" : undefined}
-              title={`Item ${displayNumber}${isAnswered ? ", answered" : ", unanswered"}${isFlagged ? ", marked" : ""}${hasNote ? `, note: ${notes[questionNumber]}` : ""}`}
+              title={`Item ${displayNumber}${isAnswered ? ", answered" : ", unanswered"}${isFlagged ? ", marked" : ""}${note ? `, note: ${note}` : ""}`}
             >
               <span className="classic-status-dot" aria-hidden="true" />
               <span>{displayNumber}</span>
               <span className="classic-status-icons" aria-hidden="true">
-                {hasNote ? <span className="classic-status-note">✎</span> : null}
-                {isFlagged ? <span className="classic-status-flag">⚑</span> : null}
+                {note ? <Pencil className="classic-status-note" /> : null}
+                {isFlagged ? <Flag className="classic-status-flag" /> : null}
               </span>
             </button>
           );
