@@ -18,6 +18,7 @@ const Index = () => {
   const [currentQuestion, setCurrentQuestion] = useState(1);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [flagged, setFlagged] = useState<Set<number>>(new Set());
+  const [notes, setNotes] = useState<Record<number, string>>({});
   const [showExplanation, setShowExplanation] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(SECTION_TIME_LIMIT);
   const [timeSpent, setTimeSpent] = useState(0);
@@ -59,6 +60,7 @@ const Index = () => {
     setCurrentSection(1);
     setAnswers({});
     setFlagged(new Set());
+    setNotes({});
     setShowExplanation(false);
     setTimeRemaining(SECTION_TIME_LIMIT);
     setTimeSpent(0);
@@ -143,6 +145,7 @@ const Index = () => {
   const handleSelectAnswer = useCallback((answer: string) => {
     if (mode === "review") return;
 
+    // StartTest source behavior: selecting an option removes strikeout from that option.
     const strikeKey = `${currentQuestion}-${answer}`;
     setStrikethroughs((previous) => {
       if (!previous.has(strikeKey)) return previous;
@@ -205,24 +208,22 @@ const Index = () => {
 
   const handleToggleStrikethrough = useCallback((optionLabel: string) => {
     const key = `${currentQuestion}-${optionLabel}`;
-    const willStrike = !strikethroughs.has(key);
-
     setStrikethroughs((previous) => {
       const next = new Set(previous);
       if (next.has(key)) next.delete(key);
       else next.add(key);
       return next;
     });
+  }, [currentQuestion]);
 
-    if (willStrike) {
-      setAnswers((previous) => {
-        if (previous[currentQuestion] !== optionLabel) return previous;
-        const next = { ...previous };
-        delete next[currentQuestion];
-        return next;
-      });
-    }
-  }, [currentQuestion, strikethroughs]);
+  const handleNoteChange = useCallback((value: string) => {
+    setNotes((previous) => {
+      const next = { ...previous };
+      if (value.trim()) next[currentQuestion] = value;
+      else delete next[currentQuestion];
+      return next;
+    });
+  }, [currentQuestion]);
 
   const handleAddHighlight = useCallback((text: string) => {
     setHighlights((previous) => {
@@ -296,6 +297,7 @@ const Index = () => {
       <ExamHeader
         currentQuestion={currentQuestion}
         timeRemaining={timeRemaining}
+        timeSpent={timeSpent}
         onPrevious={handlePrevious}
         onNext={handleNext}
         onFlag={handleFlag}
@@ -313,6 +315,8 @@ const Index = () => {
         markedInSection={markedInSection}
         canPrevious={canPrevious}
         canNext={canNext}
+        note={notes[currentQuestion] || ""}
+        onNoteChange={handleNoteChange}
       />
 
       {!showBlockReview ? (
@@ -322,6 +326,7 @@ const Index = () => {
           currentQuestion={currentQuestion}
           answers={answers}
           flagged={flagged}
+          notes={notes}
           onNavigate={handleNavigate}
         />
       ) : null}
