@@ -10,6 +10,7 @@ interface QuestionCardProps {
   selectedAnswer: string | null;
   showExplanation: boolean;
   onSelectAnswer: (answer: string) => void;
+  onNext?: () => void;
   fontSize: number;
   strikethroughs: Set<string>;
   onToggleStrikethrough: (optionLabel: string) => void;
@@ -25,6 +26,7 @@ export const QuestionCard = ({
   selectedAnswer,
   showExplanation,
   onSelectAnswer,
+  onNext,
   fontSize,
   strikethroughs,
   onToggleStrikethrough,
@@ -256,7 +258,7 @@ export const QuestionCard = ({
           </div>
         </div>
 
-        <div className="classic-options">
+        <div className="classic-options" role="radiogroup" aria-label="Answer choices">
           {question.options.map((option) => (
             <OptionButton
               key={option.label}
@@ -273,6 +275,12 @@ export const QuestionCard = ({
             />
           ))}
         </div>
+
+        {!showExplanation && onNext ? (
+          <button type="button" className="classic-proceed-button" onClick={onNext}>
+            Proceed to Next Item
+          </button>
+        ) : null}
 
         {showExplanation && (
           <div className={`classic-explanation ${isCorrect ? "correct" : "incorrect"}`}>
