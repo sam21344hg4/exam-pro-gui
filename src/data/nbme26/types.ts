@@ -5,6 +5,9 @@ export interface Question {
   correctAnswer: string;
   explanation: string;
   educationalObjective: string;
-  image?: string; // Optional image URL for the question
-  imageCaption?: string; // Optional caption for the image
+  image?: string;
+  imageCaption?: string;
+  /** Optional StartTest-style sequential item-set metadata. */
+  sequentialGroup?: string;
+  sequentialIndex?: number;
 }
