@@ -306,6 +306,7 @@ const Index = () => {
         onPause={() => setIsPaused(true)}
         showTimer={mode === "timed"}
         currentSection={displayedSection}
+        totalSections={totalSections}
         sectionStart={sectionInfo.sectionStart}
         sectionEnd={sectionInfo.sectionEnd}
         examTitle={selectedExam.section || selectedExam.title}
@@ -347,6 +348,8 @@ const Index = () => {
             fontSize={18}
             strikethroughs={strikethroughs}
             onToggleStrikethrough={handleToggleStrikethrough}
+            isFlagged={flagged.has(currentQuestion)}
+            onFlag={handleFlag}
             highlights={highlights[currentQuestion] || []}
             onAddHighlight={handleAddHighlight}
             onRemoveHighlight={handleRemoveHighlight}
