@@ -3,8 +3,8 @@ import {
   ChevronLeft,
   ChevronRight,
   LockKeyhole,
+  Menu,
   Pause,
-  Settings,
   X,
 } from "lucide-react";
 import { LabValues } from "./LabValues";
@@ -37,7 +37,6 @@ interface ExamHeaderProps {
 }
 
 type OpenPanel = "settings" | "help" | "timer" | "overview" | "end" | null;
-
 const BLOCK_SECONDS = 60 * 60;
 
 export const ExamHeader = ({
@@ -53,7 +52,6 @@ export const ExamHeader = ({
   totalSections = currentSection,
   sectionStart,
   sectionEnd,
-  examTitle,
   answeredInSection,
   markedInSection,
   canPrevious,
@@ -73,18 +71,14 @@ export const ExamHeader = ({
   const unanswered = Math.max(itemsInSection - answeredInSection, 0);
   const blockElapsed = showTimer ? Math.max(BLOCK_SECONDS - timeRemaining, 0) : timeSpent;
   const dayTotal = totalSections * BLOCK_SECONDS;
-  const dayRemaining = showTimer
-    ? Math.max((totalSections - currentSection) * BLOCK_SECONDS + timeRemaining, 0)
-    : 0;
+  const dayRemaining = showTimer ? Math.max((totalSections - currentSection) * BLOCK_SECONDS + timeRemaining, 0) : 0;
   const dayElapsed = showTimer ? Math.max(dayTotal - dayRemaining, 0) : timeSpent;
 
   const overviewRows = useMemo(
     () => Array.from({ length: totalSections }, (_, index) => ({
       block: index + 1,
       completed: index + 1 < currentSection,
-      items: index + 1 === totalSections
-        ? Math.max(1, sectionEnd - (totalSections - 1) * 50)
-        : 50,
+      items: index + 1 === totalSections ? Math.max(1, sectionEnd - (totalSections - 1) * 50) : 50,
     })),
     [currentSection, sectionEnd, totalSections]
   );
@@ -101,9 +95,7 @@ export const ExamHeader = ({
 
   useEffect(() => {
     document.documentElement.dataset.examTextZoom = String(textZoom);
-    return () => {
-      delete document.documentElement.dataset.examTextZoom;
-    };
+    return () => { delete document.documentElement.dataset.examTextZoom; };
   }, [textZoom]);
 
   useEffect(() => {
@@ -162,13 +154,11 @@ export const ExamHeader = ({
 
         <nav className="classic-header-navigation" aria-label="Question navigation">
           <button type="button" onClick={onPrevious} disabled={!canPrevious} title="Previous">
-            <ChevronLeft aria-hidden="true" />
-            <span>Previous</span>
+            <ChevronLeft aria-hidden="true" /><span>Previous</span>
           </button>
           <div className="classic-header-question-number">{itemInSection} / {itemsInSection}</div>
           <button type="button" onClick={onNext} disabled={!canNext} title="Next">
-            <ChevronRight aria-hidden="true" />
-            <span>Next</span>
+            <ChevronRight aria-hidden="true" /><span>Next</span>
           </button>
         </nav>
 
@@ -184,30 +174,20 @@ export const ExamHeader = ({
               aria-expanded={openPanel === "settings"}
               title="Settings"
             >
-              <Settings aria-hidden="true" />
-              <span>Settings</span>
+              <Menu aria-hidden="true" /><span>Settings</span>
             </button>
 
             {openPanel === "settings" ? (
               <div className="classic-settings-menu source-settings-menu" role="menu">
                 <div className="source-settings-submenu-wrap">
-                  <button
-                    type="button"
-                    role="menuitem"
-                    aria-haspopup="true"
-                    aria-expanded={showResizeMenu}
-                    onClick={() => {
-                      setShowResizeMenu((value) => !value);
-                      setShowColorMenu(false);
-                    }}
-                  >
+                  <button type="button" role="menuitem" aria-haspopup="true" aria-expanded={showResizeMenu} onClick={() => { setShowResizeMenu((value) => !value); setShowColorMenu(false); }}>
                     <span>Resize Text</span><span className="source-settings-caret">▶</span>
                   </button>
                   {showResizeMenu ? (
                     <div className="source-settings-submenu source-resize-menu" role="menu">
                       {[100, 125, 150, 200].map((zoom) => (
                         <button key={zoom} type="button" role="menuitemradio" aria-checked={textZoom === zoom} onClick={() => { setTextZoom(zoom); setShowResizeMenu(false); }}>
-                          <span>{zoom}%</span><span>{textZoom === zoom ? "✓" : ""}</span>
+                          <span>{zoom}%{textZoom === zoom ? "*" : ""}</span>
                         </button>
                       ))}
                     </div>
@@ -215,30 +195,20 @@ export const ExamHeader = ({
                 </div>
 
                 <div className="source-settings-submenu-wrap">
-                  <button
-                    type="button"
-                    role="menuitem"
-                    aria-haspopup="true"
-                    aria-expanded={showColorMenu}
-                    onClick={() => {
-                      setShowColorMenu((value) => !value);
-                      setShowResizeMenu(false);
-                    }}
-                  >
+                  <button type="button" role="menuitem" aria-haspopup="true" aria-expanded={showColorMenu} onClick={() => { setShowColorMenu((value) => !value); setShowResizeMenu(false); }}>
                     <span>Color Theme</span><span className="source-settings-caret">▶</span>
                   </button>
                   {showColorMenu ? (
                     <div className="source-settings-submenu source-color-menu" role="menu">
-                      <button type="button" role="menuitemradio" aria-checked={!darkTheme} onClick={() => { setDarkTheme(false); setShowColorMenu(false); }}><span>Default</span><span>{!darkTheme ? "✓" : ""}</span></button>
-                      <button type="button" role="menuitemradio" aria-checked={darkTheme} onClick={() => { setDarkTheme(true); setShowColorMenu(false); }}><span>Dark Theme</span><span>{darkTheme ? "✓" : ""}</span></button>
+                      <button type="button" role="menuitemradio" aria-checked={!darkTheme} onClick={() => { setDarkTheme(false); setShowColorMenu(false); }}><span>Default{!darkTheme ? "*" : ""}</span></button>
+                      <button type="button" role="menuitemradio" aria-checked={darkTheme} onClick={() => { setDarkTheme(true); setShowColorMenu(false); }}><span>Dark Theme{darkTheme ? "*" : ""}</span></button>
                     </div>
                   ) : null}
                 </div>
 
                 <button type="button" role="menuitemcheckbox" aria-checked={showStrikeout} onClick={() => setShowStrikeout((value) => !value)}>
-                  <span>Show/Hide Strikeout</span><span>{showStrikeout ? "✓" : ""}</span>
+                  <span>Show/Hide Strikeout</span>
                 </button>
-
                 <button type="button" role="menuitem" id="tools-help" onClick={() => { setOpenPanel("help"); setShowResizeMenu(false); setShowColorMenu(false); }}>
                   <span>Help</span>
                 </button>
@@ -250,34 +220,16 @@ export const ExamHeader = ({
 
       <footer className="classic-bottom-bar source-bottom-bar" aria-label="Exam controls">
         <div className="classic-footer-left">
-          <button
-            type="button"
-            className={`source-timer-trigger ${openPanel === "timer" ? "is-open" : ""}`}
-            onClick={() => togglePanel("timer")}
-            aria-expanded={openPanel === "timer"}
-          >
+          <button type="button" className={`source-timer-trigger ${openPanel === "timer" ? "is-open" : ""}`} onClick={() => togglePanel("timer")} aria-expanded={openPanel === "timer"}>
             <span>Block Time Remaining:</span><strong>{formatTime(timeRemaining)}</strong>
             {showTimer ? <><span>Day Time Remaining:</span><strong>{formatTime(dayRemaining)}</strong></> : null}
           </button>
-          <button type="button" className="classic-footer-button" onClick={onPause} title="Pause">
-            <Pause aria-hidden="true" />
-            <span>Pause</span>
-          </button>
+          <button type="button" className="classic-footer-button" onClick={onPause} title="Pause"><Pause aria-hidden="true" /><span>Pause</span></button>
         </div>
 
-        <button type="button" className="classic-footer-button classic-lock-button" onClick={onPause} title="Lock">
-          <LockKeyhole aria-hidden="true" />
-          <span>Lock</span>
-        </button>
-
-        <button
-          type="button"
-          className={`classic-footer-button classic-end-button ${unanswered === 0 ? "is-complete" : ""}`}
-          onClick={() => togglePanel("end")}
-          title="End Block"
-        >
-          <span className="classic-end-icon">{unanswered === 0 ? <ChevronRight aria-hidden="true" /> : <X aria-hidden="true" />}</span>
-          <span>End Block</span>
+        <button type="button" className="classic-footer-button classic-lock-button" onClick={onPause} title="Lock"><LockKeyhole aria-hidden="true" /><span>Lock</span></button>
+        <button type="button" className={`classic-footer-button classic-end-button ${unanswered === 0 ? "is-complete" : ""}`} onClick={() => togglePanel("end")} title="End Block">
+          <span className="classic-end-icon">{unanswered === 0 ? <ChevronRight aria-hidden="true" /> : <X aria-hidden="true" />}</span><span>End Block</span>
         </button>
       </footer>
 
@@ -285,18 +237,13 @@ export const ExamHeader = ({
         <section className="source-overview-panel" role="dialog" aria-modal="false" aria-labelledby="overview-title">
           <div className="source-panel-heading" id="overview-title">Exam Overview</div>
           <div className="source-overview-caption">Day 1 of 1</div>
-          <table>
-            <thead><tr><th>Block</th><th>Time</th><th>Items</th></tr></thead>
-            <tbody>
-              {overviewRows.map((row) => (
-                <tr key={row.block} className={row.block === currentSection ? "is-current" : ""}>
-                  <td>{row.completed ? "✓ " : ""}{row.block}</td>
-                  <td>1 hr 0 min 0 sec</td>
-                  <td>{row.items}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <table><thead><tr><th>Block</th><th>Time</th><th>Items</th></tr></thead><tbody>
+            {overviewRows.map((row) => (
+              <tr key={row.block} className={row.block === currentSection ? "is-current" : ""}>
+                <td>{row.completed ? "✓ " : ""}{row.block}</td><td>1 hr 0 min 0 sec</td><td>{row.items}</td>
+              </tr>
+            ))}
+          </tbody></table>
         </section>
       ) : null}
 
@@ -327,23 +274,10 @@ export const ExamHeader = ({
         <section className="source-end-dialog" role="alertdialog" aria-modal="true" aria-labelledby="source-end-title">
           <div className="source-panel-heading" id="source-end-title">End Block</div>
           <div className="source-end-copy">
-            {unanswered > 0 ? (
-              <>
-                <p>There {unanswered === 1 ? "is" : "are"} still <strong>{unanswered}</strong> incomplete item{unanswered === 1 ? "" : "s"} in this block.</p>
-                <p>Are you sure that you wish to end the block?</p>
-              </>
-            ) : (
-              <>
-                <p>Once you exit this block you will NOT be able to return to any of the items.</p>
-                <p>Are you sure that you wish to exit this block?</p>
-              </>
-            )}
+            {unanswered > 0 ? <><p>There {unanswered === 1 ? "is" : "are"} still <strong>{unanswered}</strong> incomplete item{unanswered === 1 ? "" : "s"} in this block.</p><p>Are you sure that you wish to end the block?</p></> : <><p>Once you exit this block you will NOT be able to return to any of the items.</p><p>Are you sure that you wish to exit this block?</p></>}
             {markedInSection > 0 ? <p>You have {markedInSection} marked item{markedInSection === 1 ? "" : "s"}.</p> : null}
           </div>
-          <div className="source-end-actions">
-            <button type="button" onClick={confirmEndBlock}>End Block</button>
-            <button type="button" autoFocus onClick={() => setOpenPanel(null)}>Remain in Block</button>
-          </div>
+          <div className="source-end-actions"><button type="button" onClick={confirmEndBlock}>End Block</button><button type="button" autoFocus onClick={() => setOpenPanel(null)}>Remain in Block</button></div>
         </section>
       ) : null}
 
@@ -356,31 +290,22 @@ export const ExamHeader = ({
             </button>
           </div>
           <div className="source-help-content" tabIndex={0}>
-            <div>
-              <h3>Exam Navigation</h3>
-              <table><tbody>
-                <tr className="source-help-top"><td colSpan={2}>&nbsp;</td></tr>
-                <tr><td><b>Item Information Panel</b></td><td>Shows an exam overview and sections completed. The current item and block information are already displayed.</td></tr>
-                <tr className="source-help-blue"><td><b>Previous/Next</b></td><td>Move backward or forward one screen.</td></tr>
-                <tr><td><b>Lab Values</b></td><td>Opens a searchable reference containing four categories of laboratory values. SI reference intervals are also available.</td></tr>
-                <tr className="source-help-blue"><td><b>Notes</b></td><td>Add a note to an item.</td></tr>
-                <tr><td><b>Calculator</b></td><td>Opens a basic calculator. To close the calculator, click again.</td></tr>
-              </tbody></table>
-            </div>
-
-            <div>
-              <h3>Settings</h3>
-              <table><tbody>
-                <tr className="source-help-top"><td><b>Settings</b></td><td>Opens the menu to access the settings detailed below.</td></tr>
-                <tr><td><b>Resize Text</b></td><td>Resizes the text of the exam interface and questions.</td></tr>
-                <tr className="source-help-blue"><td><b>Color Theme</b></td><td>Switches between the default color theme and a dark theme.</td></tr>
-                <tr><td><b>Show/Hide Strikeout</b></td><td>When enabled, displays a strikeout icon next to each answer option.</td></tr>
-                <tr className="source-help-blue"><td><b>Help</b></td><td>Review the information presented in this tutorial for interacting with the exam.</td></tr>
-              </tbody></table>
-            </div>
-
-            <div>
-              <h3>Highlight, Strike Out, and Other Features</h3>
+            <div><h3>Exam Navigation</h3><table><tbody>
+              <tr className="source-help-top"><td colSpan={2}>&nbsp;</td></tr>
+              <tr><td><b>Item Information Panel</b></td><td>Shows an exam overview and sections completed. The current item and block information are already displayed.</td></tr>
+              <tr className="source-help-blue"><td><b>Previous/Next</b></td><td>Move backward or forward one screen.</td></tr>
+              <tr><td><b>Lab Values</b></td><td>Opens a searchable reference containing four categories of laboratory values. SI reference intervals are also available.</td></tr>
+              <tr className="source-help-blue"><td><b>Notes</b></td><td>Add a note to an item.</td></tr>
+              <tr><td><b>Calculator</b></td><td>Opens a basic calculator. To close the calculator, click again.</td></tr>
+            </tbody></table></div>
+            <div><h3>Settings</h3><table><tbody>
+              <tr className="source-help-top"><td><b>Settings</b></td><td>Opens the menu to access the settings detailed below.</td></tr>
+              <tr><td><b>Resize Text</b></td><td>Resizes the text of the exam interface and questions.</td></tr>
+              <tr className="source-help-blue"><td><b>Color Theme</b></td><td>Switches between the default color theme and a dark theme.</td></tr>
+              <tr><td><b>Show/Hide Strikeout</b></td><td>When enabled, displays a strikeout icon next to each answer option.</td></tr>
+              <tr className="source-help-blue"><td><b>Help</b></td><td>Review the information presented in this tutorial for interacting with the exam.</td></tr>
+            </tbody></table></div>
+            <div><h3>Highlight, Strike Out, and Other Features</h3>
               <p><b>Highlight:</b> Click and drag over text to highlight it in yellow. Click highlighted text to remove highlighting.</p>
               <p><b>Strikeout:</b> Click the strikeout button to add or remove strikeout from an option, or right click an option. Strikeout is removed from an option if that option is selected as the answer.</p>
               <p><b>Mark Question:</b> Mark an item to review later if time allows.</p>
