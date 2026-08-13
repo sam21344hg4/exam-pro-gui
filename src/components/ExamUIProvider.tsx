@@ -74,6 +74,26 @@ export const ExamUIProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [textZoom]);
 
+  useEffect(() => {
+    const shouldDisable = activePopup === "zoom";
+    const targets = Array.from(document.querySelectorAll<HTMLElement>(".classic-exam-header,.classic-bottom-bar"));
+    targets.forEach((target) => {
+      if (shouldDisable) {
+        target.setAttribute("inert", "");
+        target.setAttribute("aria-hidden", "true");
+      } else {
+        target.removeAttribute("inert");
+        target.removeAttribute("aria-hidden");
+      }
+    });
+    return () => {
+      targets.forEach((target) => {
+        target.removeAttribute("inert");
+        target.removeAttribute("aria-hidden");
+      });
+    };
+  }, [activePopup]);
+
   const openPopup = (popup: Exclude<ExamPopup, null>) => {
     if (popup === "zoom") {
       zoomBeforeMediaRef.current = textZoom;
@@ -128,6 +148,18 @@ export const ExamUIProvider = ({ children }: { children: ReactNode }) => {
     if (calculatorOpen) closeCalculator();
     else openCalculator();
   };
+
+  useEffect(() => {
+    if (activePopup !== "settings") return;
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      if (document.querySelector(".classic-settings-wrap")?.contains(target)) return;
+      closePopup("settings");
+    };
+    document.addEventListener("pointerdown", onPointerDown, true);
+    return () => document.removeEventListener("pointerdown", onPointerDown, true);
+  }, [activePopup]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
