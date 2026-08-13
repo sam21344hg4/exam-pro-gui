@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { motion } from "framer-motion";
 import { Contrast, RotateCcw, Search, X, ZoomIn, ZoomOut } from "lucide-react";
 import { Question } from "@/data/examQuestions";
 import { OptionButton } from "./OptionButton";
@@ -151,16 +150,7 @@ export const QuestionCard = ({
 
   return (
     <>
-      <motion.div
-        {...inertProps}
-        key={question.id}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.08 }}
-        className="classic-question-card"
-        aria-hidden={isZoomOpen ? true : undefined}
-      >
+      <div {...inertProps} className="classic-question-card" aria-hidden={isZoomOpen ? true : undefined}>
         <div ref={stemRef} className="classic-question-stem" onMouseUp={handleStemMouseUp}>
           <span className="classic-question-number">{displayNumber}.</span>
           <div>
@@ -195,9 +185,9 @@ export const QuestionCard = ({
         </div>
 
         <div className="classic-options" role="radiogroup" aria-label="Answer choices">
-          {question.options.map((option) => (
+          {question.options.map((option, optionIndex) => (
             <OptionButton
-              key={option.label}
+              key={`${question.id}-${option.label}-${optionIndex}`}
               label={option.label}
               text={option.text}
               isSelected={selectedAnswer === option.label}
@@ -220,7 +210,7 @@ export const QuestionCard = ({
             <p><strong>Educational Objective:</strong> {question.educationalObjective}</p>
           </div>
         ) : null}
-      </motion.div>
+      </div>
 
       {isZoomOpen && question.image ? (
         <section className="source-image-viewer" role="dialog" aria-modal="false" aria-label="Magnified image">
