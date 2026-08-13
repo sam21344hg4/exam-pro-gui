@@ -37,7 +37,7 @@ export const availableExams: ExamData[] = [
     section: nbme25Info.section,
     totalQuestions: nbme25Info.totalQuestions,
     timeLimit: nbme25Info.timeLimit,
-    sections: [{ itemCount: 50, timeLimitMinutes: 60 }],
+    sections: [{ itemCount: nbme25Questions.length, timeLimitMinutes: 60 }],
     questions: nbme25Questions,
   },
 ];
