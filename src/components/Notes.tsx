@@ -4,38 +4,47 @@ import { StickyNote, X } from "lucide-react";
 import { useExamUI } from "./ExamUIProvider";
 
 interface NotesProps {
-  itemId: number;
+  itemId?: number;
   notes: string;
-  onNotesChange: (itemId: number, notes: string) => void;
+  onNotesChange: ((itemId: number, notes: string) => void) | ((notes: string) => void);
 }
 
 export const Notes = ({ itemId, notes, onNotesChange }: NotesProps) => {
   const { activePopup, openPopup, closePopup } = useExamUI();
   const open = activePopup === "notes";
+  const resolvedItemId = itemId ?? 0;
   const [draft, setDraft] = useState(notes);
   const draftRef = useRef(notes);
-  const openItemRef = useRef(itemId);
+  const openItemRef = useRef(resolvedItemId);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const wasOpenRef = useRef(false);
+
+  const commitNote = (targetItem: number, value: string) => {
+    if (itemId === undefined) {
+      (onNotesChange as (notes: string) => void)(value);
+    } else {
+      (onNotesChange as (itemId: number, notes: string) => void)(targetItem, value);
+    }
+  };
 
   useEffect(() => { draftRef.current = draft; }, [draft]);
 
   useEffect(() => {
     if (!open) {
-      openItemRef.current = itemId;
+      openItemRef.current = resolvedItemId;
       setDraft(notes);
       draftRef.current = notes;
       return;
     }
 
-    if (openItemRef.current !== itemId) {
+    if (openItemRef.current !== resolvedItemId) {
       const previousDraft = draftRef.current;
-      onNotesChange(openItemRef.current, previousDraft.trim() ? previousDraft : "");
-      openItemRef.current = itemId;
+      commitNote(openItemRef.current, previousDraft.trim() ? previousDraft : "");
+      openItemRef.current = resolvedItemId;
       setDraft(notes);
       draftRef.current = notes;
     }
-  }, [itemId, notes, open, onNotesChange]);
+  }, [resolvedItemId, notes, open]);
 
   useEffect(() => {
     if (wasOpenRef.current && !open) triggerRef.current?.focus();
@@ -44,7 +53,7 @@ export const Notes = ({ itemId, notes, onNotesChange }: NotesProps) => {
 
   const persistDraft = () => {
     const value = draftRef.current;
-    onNotesChange(openItemRef.current, value.trim() ? value : "");
+    commitNote(openItemRef.current, value.trim() ? value : "");
   };
 
   useEffect(() => {
@@ -60,10 +69,10 @@ export const Notes = ({ itemId, notes, onNotesChange }: NotesProps) => {
 
     window.addEventListener("keydown", onKeyDown, true);
     return () => window.removeEventListener("keydown", onKeyDown, true);
-  }, [open, closePopup]);
+  }, [open]);
 
   const openPanel = () => {
-    openItemRef.current = itemId;
+    openItemRef.current = resolvedItemId;
     setDraft(notes);
     draftRef.current = notes;
     openPopup("notes");
@@ -77,7 +86,7 @@ export const Notes = ({ itemId, notes, onNotesChange }: NotesProps) => {
   const deleteNote = () => {
     setDraft("");
     draftRef.current = "";
-    onNotesChange(openItemRef.current, "");
+    commitNote(openItemRef.current, "");
     closePopup("notes");
   };
 
