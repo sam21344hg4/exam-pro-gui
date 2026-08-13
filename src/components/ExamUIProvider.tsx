@@ -172,7 +172,15 @@ export const ExamUIProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
-      if (activePopup === "notes" || activePopup === "unauthorizedBreak" || activePopup === "reducedTime") return;
+      if (activePopup === "unauthorizedBreak" || activePopup === "reducedTime") return;
+
+      if (activePopup === "notes") {
+        if (calculatorOpen && focusIsWithin(".nbme-calculator-panel,[title='Calculator']")) {
+          event.preventDefault();
+          setCalculatorOpen(false);
+        }
+        return;
+      }
 
       const blocking = activePopup === "help" || activePopup === "end" || activePopup === "lockWarning";
       const focusSelectors: Partial<Record<Exclude<ExamPopup, null>, string>> = {
