@@ -1,12 +1,18 @@
 import { examQuestions, examInfo, Question } from "./examQuestions";
 import { nbme25Questions, nbme25Info } from "./nbme25";
 
+export interface ExamSectionConfig {
+  itemCount: number;
+  timeLimitMinutes: number;
+}
+
 export interface ExamData {
   id: string;
   title: string;
   section: string;
   totalQuestions: number;
   timeLimit: number;
+  sections: ExamSectionConfig[];
   questions: Question[];
 }
 
@@ -17,6 +23,12 @@ export const availableExams: ExamData[] = [
     section: examInfo.section,
     totalQuestions: examInfo.totalQuestions,
     timeLimit: examInfo.timeLimit,
+    sections: [
+      { itemCount: 50, timeLimitMinutes: 60 },
+      { itemCount: 50, timeLimitMinutes: 60 },
+      { itemCount: 50, timeLimitMinutes: 60 },
+      { itemCount: 50, timeLimitMinutes: 60 },
+    ],
     questions: examQuestions,
   },
   {
@@ -25,6 +37,7 @@ export const availableExams: ExamData[] = [
     section: nbme25Info.section,
     totalQuestions: nbme25Info.totalQuestions,
     timeLimit: nbme25Info.timeLimit,
+    sections: [{ itemCount: 50, timeLimitMinutes: 60 }],
     questions: nbme25Questions,
   },
 ];
