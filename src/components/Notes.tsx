@@ -1,13 +1,5 @@
-import { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { StickyNote } from "lucide-react";
 
 interface NotesProps {
@@ -17,45 +9,64 @@ interface NotesProps {
 
 export const Notes = ({ notes, onNotesChange }: NotesProps) => {
   const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState(notes);
+
+  useEffect(() => {
+    if (!open) setDraft(notes);
+  }, [notes, open]);
+
+  const openPanel = () => {
+    setDraft(notes);
+    setOpen(true);
+  };
+
+  const saveAndClose = () => {
+    onNotesChange(draft);
+    setOpen(false);
+  };
+
+  const deleteNotes = () => {
+    setDraft("");
+    onNotesChange("");
+    setOpen(false);
+  };
+
+  const panel = open
+    ? createPortal(
+        <div className="nbme-notes-panel" role="dialog" aria-label="Notes">
+          <textarea
+            rows={7}
+            cols={42}
+            wrap="hard"
+            maxLength={1500}
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
+            autoFocus
+            aria-label="Question notes"
+          />
+          <div className="nbme-notes-actions">
+            <button type="button" onClick={saveAndClose}>Save and Close</button>
+            <button type="button" onClick={deleteNotes}>Delete Notes</button>
+          </div>
+        </div>,
+        document.body
+      )
+    : null;
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="gap-1.5 text-xs relative">
-          <StickyNote className="h-4 w-4" />
-          <span className="hidden sm:inline">Notes</span>
-          {notes.length > 0 && (
-            <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-warning" />
-          )}
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Scratch Pad</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-3">
-          <p className="text-sm text-muted-foreground">
-            Use this space for notes and calculations. Notes are saved during your exam session.
-          </p>
-          <Textarea
-            value={notes}
-            onChange={(e) => onNotesChange(e.target.value)}
-            placeholder="Type your notes here..."
-            className="min-h-[300px] font-mono text-sm resize-none"
-          />
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>{notes.length} characters</span>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onNotesChange("")}
-              className="text-destructive hover:text-destructive"
-            >
-              Clear Notes
-            </Button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+    <>
+      <button
+        type="button"
+        className="classic-tool-trigger"
+        title="Notes"
+        aria-expanded={open}
+        onClick={() => (open ? saveAndClose() : openPanel())}
+      >
+        <span className="classic-tool-square-icon"><StickyNote size={23} strokeWidth={2.1} /></span>
+        <span>Notes</span>
+        {notes.length > 0 ? <span className="classic-notes-indicator" aria-hidden="true" /> : null}
+      </button>
+      {panel}
+    </>
   );
 };
