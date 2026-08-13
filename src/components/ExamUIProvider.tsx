@@ -152,6 +152,10 @@ export const ExamUIProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     if (activePopup !== "settings") return;
+
+    const menu = document.querySelector<HTMLElement>(".source-settings-menu");
+    if (menu) menu.style.setProperty("right", "132px", "important");
+
     const onPointerDown = (event: PointerEvent) => {
       const target = event.target;
       if (!(target instanceof Node)) return;
@@ -159,7 +163,10 @@ export const ExamUIProvider = ({ children }: { children: ReactNode }) => {
       closePopup("settings");
     };
     document.addEventListener("pointerdown", onPointerDown, true);
-    return () => document.removeEventListener("pointerdown", onPointerDown, true);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown, true);
+      menu?.style.removeProperty("right");
+    };
   }, [activePopup]);
 
   useEffect(() => {
