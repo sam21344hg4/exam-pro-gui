@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { StickyNote, X } from "lucide-react";
+import { Pencil, X } from "lucide-react";
 import { useExamUI } from "./ExamUIProvider";
 
 interface NotesProps {
@@ -99,7 +99,7 @@ export const Notes = ({ itemId, notes, onNotesChange }: NotesProps) => {
     closePopup("notes");
   };
 
-  const deleteNote = () => {
+  const deleteNotes = () => {
     setDraft("");
     draftRef.current = "";
     commitNote(openItemRef.current, "");
@@ -127,7 +127,7 @@ export const Notes = ({ itemId, notes, onNotesChange }: NotesProps) => {
           />
           <div className="nbme-notes-actions">
             <button type="button" onClick={saveAndClose}>Save and Close</button>
-            <button type="button" onClick={deleteNote}>Delete Note</button>
+            <button type="button" onClick={deleteNotes}>Delete Notes</button>
           </div>
         </div>,
         document.body
@@ -137,7 +137,7 @@ export const Notes = ({ itemId, notes, onNotesChange }: NotesProps) => {
   return (
     <>
       <button ref={triggerRef} type="button" className="classic-tool-trigger" title="Notes" aria-expanded={open} onClick={() => (open ? saveAndClose() : openPanel())}>
-        <span className="classic-tool-square-icon"><StickyNote size={23} strokeWidth={2.1} /></span>
+        <span className="classic-tool-square-icon"><Pencil size={23} strokeWidth={2.1} /></span>
         <span>Notes</span>
       </button>
       {panel}
