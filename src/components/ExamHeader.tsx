@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -56,11 +56,17 @@ export const ExamHeader = ({
   const [showEndDialog, setShowEndDialog] = useState(false);
   const [showHelpDialog, setShowHelpDialog] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showStrikeout, setShowStrikeout] = useState(false);
   const [notes, setNotes] = useState("");
 
   const itemInSection = currentQuestion - sectionStart + 1;
   const itemsInSection = sectionEnd - sectionStart + 1;
   const unanswered = Math.max(itemsInSection - answeredInSection, 0);
+
+  useEffect(() => {
+    document.body.classList.toggle("classic-show-strikeout", showStrikeout);
+    return () => document.body.classList.remove("classic-show-strikeout");
+  }, [showStrikeout]);
 
   const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -113,6 +119,15 @@ export const ExamHeader = ({
             </button>
             {showSettings ? (
               <div className="classic-settings-menu" role="menu">
+                <button
+                  type="button"
+                  role="menuitemcheckbox"
+                  aria-checked={showStrikeout}
+                  onClick={() => setShowStrikeout((value) => !value)}
+                >
+                  <span className="classic-settings-strike-glyph" aria-hidden="true">ab</span>
+                  Show/Hide Strikeout
+                </button>
                 <button type="button" role="menuitem" onClick={() => { setShowSettings(false); onReview(); }}>
                   <ListChecks size={16} /> Review Block
                 </button>
@@ -191,6 +206,8 @@ export const ExamHeader = ({
             <div className="classic-modal-titlebar" id="help-title">Help</div>
             <div className="classic-modal-body classic-help-copy">
               <p><strong>Answering:</strong> Select one response for each item. Your selection is saved automatically.</p>
+              <p><strong>Strikeout:</strong> Right click on an answer option to strike out that option. Right click on a strikeout to remove it.</p>
+              <p><strong>Strikeout Button:</strong> The optional strikeout button is enabled with <em>Show/Hide Strikeout</em> in Settings. Activate it with the mouse, Enter, or Spacebar.</p>
               <p><strong>Mark Question:</strong> Mark an item when you want to return to it during the current block.</p>
               <p><strong>Review:</strong> Opens the block review screen with answered, incomplete, and marked items.</p>
               <p><strong>Lab Values, Notes, and Calculator:</strong> Open reference tools without leaving the current item.</p>
