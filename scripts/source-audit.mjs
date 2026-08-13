@@ -24,17 +24,27 @@ page.on("pageerror", (error) => {
 });
 
 const shot = async (name) => page.screenshot({ path: path.join(outDir, `${name}.png`), fullPage: true });
+const startTimed = async () => {
+  await page.getByRole("button", { name: /Start Timed Exam/i }).click();
+  await page.locator(".classic-exam-header").waitFor({ state: "visible" });
+};
 
 try {
   await page.goto("http://127.0.0.1:8080", { waitUntil: "networkidle" });
-  await page.getByRole("button", { name: /Start Timed Exam/i }).click();
-  await page.locator(".classic-exam-header").waitFor({ state: "visible" });
+  await startTimed();
 
   await shot("01-initial-question");
   assert(await page.locator(".classic-lock-button").count() === 1, "USMLE program 267 must show Lock");
   assert(await page.locator('.classic-footer-button[title="Pause"]').count() === 0, "USMLE program 267 must not show Pause");
   assert(await page.locator(".source-exam-header .source-mark-trigger").count() === 1, "Mark Question must be in the top header");
   assert(await page.locator(".classic-exam-main .source-mark-trigger").count() === 0, "Mark Question must not be in the question body");
+
+  const firstOption = page.locator(".classic-option-row").first();
+  assert(await firstOption.locator(".classic-strike-button").isVisible(), "Strikeout must be enabled by default");
+  await firstOption.click({ button: "right" });
+  assert(await firstOption.locator(".classic-option-text.is-struck").count() === 1, "Right click must strike an option");
+  await firstOption.locator('input[type="radio"]').click();
+  assert(await firstOption.locator(".classic-option-text.is-struck").count() === 0, "Selecting a struck option must remove strikeout");
 
   await page.locator(".classic-header-settings").click();
   const settings = page.locator(".source-settings-menu");
@@ -51,30 +61,61 @@ try {
   assert(menuBox && submenuBox && submenuBox.x >= menuBox.x + menuBox.width - 2, "Resize Text submenu must open to the right");
   assert(submenuBox && submenuBox.x + submenuBox.width <= 1365, "Resize Text submenu must remain inside the viewport");
   await shot("02-settings-right-submenu");
-  await page.mouse.click(500, 300);
+  await page.mouse.click(800, 500);
   assert(await settings.count() === 0, "Settings must collapse on outside click");
+
+  await page.locator(".classic-header-settings").click();
+  await page.locator(".source-settings-menu").getByText("Help", { exact: true }).click();
+  const help = page.locator("#helpContainer");
+  await help.waitFor({ state: "visible" });
+  assert(await help.getByText("Exam Interface and Features", { exact: true }).count() === 1, "Help title does not match source");
+  assert(await page.locator(".classic-exam-main").getAttribute("inert") !== null, "Help must disable the question UI");
+  await shot("03-help");
+  await page.keyboard.press("Escape");
+  await help.waitFor({ state: "hidden" });
 
   await page.locator(".source-timer-trigger").click();
   await page.getByText("Block Time Information", { exact: true }).waitFor();
   assert(await page.getByText("Day Time Information", { exact: true }).count() === 1, "Timer missing Day Time Information");
   assert(await page.getByText("Break Time Remaining:", { exact: true }).count() >= 1, "Timer missing Break Time Remaining");
-  await shot("03-timer-panel");
+  await shot("04-timer-panel");
   await page.locator(".source-timer-panel .source-panel-close").click();
 
   await page.locator(".source-item-info-trigger").click();
   await page.getByText("Exam Overview", { exact: true }).waitFor();
   assert(await page.getByText("Exam Block", { exact: true }).count() >= 1, "Exam Overview missing Exam Block rows");
-  await shot("04-exam-overview");
+  await shot("05-exam-overview");
   await page.locator(".source-overview-panel .source-panel-close").click();
 
-  await page.locator('.classic-header-tool-slot > .classic-tool-trigger[title="Notes"]').click();
-  const note = page.getByRole("textbox", { name: "Notes" });
+  const notesTrigger = page.locator('.classic-header-tool-slot > .classic-tool-trigger[title="Notes"]');
+  await notesTrigger.click();
+  let note = page.getByRole("textbox", { name: "Notes" });
   await note.fill("source audit note");
   await page.getByRole("button", { name: "Save and Close" }).click();
-  const noteIndicator = page.locator(".classic-status-note-wrap").first();
+  let noteIndicator = page.locator(".classic-status-note-wrap").first();
   await noteIndicator.waitFor({ state: "visible" });
   assert((await noteIndicator.getAttribute("title")) === "source audit note", "Saved note must be exposed on the status pencil");
-  await shot("05-note-indicator");
+  await shot("06-note-indicator");
+
+  await notesTrigger.click();
+  note = page.getByRole("textbox", { name: "Notes" });
+  await note.fill("source audit coexistence note");
+  await page.locator('.classic-header-tool-slot > .classic-tool-trigger[title="Calculator"]').click();
+  assert(await page.locator(".nbme-notes-panel").count() === 1, "Notes must remain open with Calculator");
+  assert(await page.locator(".nbme-calculator-panel.with-notes").count() === 1, "Calculator must move when Notes is open");
+  await page.getByRole("button", { name: "1", exact: true }).click();
+  await page.keyboard.press("Escape");
+  await page.locator(".nbme-calculator-panel").waitFor({ state: "hidden" });
+  assert(await page.locator(".nbme-notes-panel").count() === 1, "Escape focused in Calculator must not close Notes");
+  await note.focus();
+  await page.keyboard.press("Escape");
+  await page.locator(".nbme-notes-panel").waitFor({ state: "hidden" });
+  noteIndicator = page.locator(".classic-status-note-wrap").first();
+  await noteIndicator.waitFor({ state: "visible" });
+  assert((await noteIndicator.getAttribute("title")) === "source audit coexistence note", "Escape from Notes must save the note");
+  await notesTrigger.click();
+  await page.getByRole("button", { name: "Delete Notes", exact: true }).click();
+  assert(await page.locator(".classic-status-note-wrap").count() === 0, "Delete Notes must remove the status pencil");
 
   await page.locator('.classic-header-tool-slot > .classic-tool-trigger[title="Lab Values"]').click();
   const lab = page.locator(".source-lab-panel");
@@ -89,13 +130,13 @@ try {
   await page.waitForTimeout(700);
   assert(await page.locator("mark[data-source-lab-mark]").count() > 0, "Lab search must mark matching text");
   assert(await page.locator(".source-lab-tabs li.searched").count() > 0, "Lab search must underline tabs containing results");
-  await shot("06-lab-search-split");
+  await shot("07-lab-search-split");
   await page.locator(".source-lab-close-button").click();
 
   const timerBefore = await page.locator(".source-timer-trigger").innerText();
   await page.locator(".classic-lock-button").click();
   await page.getByText("Unauthorized Break Warning", { exact: true }).waitFor();
-  await shot("07-lock-warning");
+  await shot("08-lock-warning");
   await page.getByRole("button", { name: "Unauthorized Break", exact: true }).click();
   await page.locator(".source-unauthorized-break").waitFor({ state: "visible" });
   await page.waitForTimeout(2200);
@@ -107,7 +148,7 @@ try {
   await page.getByText("Warning - This block is incomplete!", { exact: true }).waitFor();
   assert(await page.getByText(/Number of unanswered items in this block:/).count() === 1, "Incomplete End Block warning missing unanswered count");
   assert(await page.getByText("If you end this block you will not be able to return.", { exact: true }).count() === 1, "End Block warning text differs from source");
-  await shot("08-end-block-incomplete");
+  await shot("09-end-block-incomplete");
   await page.getByRole("button", { name: "Remain in Block" }).click();
 
   let zoomFound = false;
@@ -123,21 +164,57 @@ try {
   }
 
   if (zoomFound) {
+    const invertButton = page.locator('.classic-image-tools button[title="Invert"]');
+    await invertButton.click();
+    const invertSlider = page.locator(".source-image-slider-invert");
+    await invertSlider.waitFor({ state: "visible" });
+    const invertBox = await invertButton.boundingBox();
+    const sliderBox = await invertSlider.boundingBox();
+    assert(invertBox && sliderBox && sliderBox.x >= invertBox.x + invertBox.width - 2, "Invert slider must attach immediately to the right of Invert");
+    await shot("10-invert-attached-slider");
+    await invertButton.click();
+
     await page.locator(".classic-header-settings").click();
     await page.locator(".source-settings-menu").getByText("Resize Text", { exact: true }).click();
     await page.locator(".source-resize-menu").getByText("150%", { exact: true }).click();
+    await page.locator('.classic-header-tool-slot > .classic-tool-trigger[title="Lab Values"]').click();
+    await page.locator(".source-lab-panel").waitFor({ state: "visible" });
     await page.locator('.classic-image-tools button[title="Zoom"]').click();
     await page.locator(".source-image-viewer").waitFor({ state: "visible" });
+    assert(await page.locator(".source-lab-panel").count() === 0, "Fullscreen media must suspend Lab Values");
     assert((await page.locator("html").getAttribute("data-exam-text-zoom")) === "100", "Fullscreen media must force UI zoom to 100%");
     assert(await page.locator(".classic-exam-header").getAttribute("inert") !== null, "Fullscreen media must disable header controls");
-    await shot("09-fullscreen-media");
+    await shot("11-fullscreen-media");
     await page.locator(".source-viewer-close").click();
     assert((await page.locator("html").getAttribute("data-exam-text-zoom")) === "150", "Closing media must restore previous UI zoom");
+    await page.locator(".source-lab-panel").waitFor({ state: "visible" });
+    await page.locator(".source-lab-close-button").click();
   } else {
-    await fs.writeFile(path.join(outDir, "09-zoom-not-present.txt"), "No image question was present in the first block; fullscreen media visual check was not run.\n");
+    await fs.writeFile(path.join(outDir, "11-zoom-not-present.txt"), "No image question was present in the first block; fullscreen media visual check was not run.\n");
   }
 
-  if (consoleErrors.length) await fs.writeFile(path.join(outDir, "browser-console-errors.txt"), `${consoleErrors.join("\n\n")}\n`);
+  await page.reload({ waitUntil: "networkidle" });
+  await startTimed();
+  for (let item = 1; item <= 50; item += 1) {
+    await page.locator('.classic-radio-input').first().click();
+    if (item < 50) {
+      await page.locator('.classic-header-navigation button[title="Next"]').click();
+      await page.waitForTimeout(15);
+    }
+  }
+  assert(await page.locator(".classic-end-button.is-complete").count() === 1, "End Block must switch to its complete state after all items are answered");
+  await page.locator(".classic-end-button").click();
+  await page.getByText("Warning - You are about to end the block.", { exact: true }).waitFor();
+  assert(await page.getByText("If you end this block you will not be able to return.", { exact: true }).count() === 1, "Completed End Block warning text differs from source");
+  await shot("12-end-block-complete");
+  await page.locator(".source-end-actions button").first().click();
+  await page.locator(".source-break-card").waitFor({ state: "visible" });
+  await shot("13-between-block-state");
+
+  if (consoleErrors.length) {
+    await fs.writeFile(path.join(outDir, "browser-console-errors.txt"), `${consoleErrors.join("\n\n")}\n`);
+    throw new Error(`Browser console/page errors detected: ${consoleErrors.length}`);
+  }
   await fs.writeFile(path.join(outDir, "audit-result.txt"), "PASS\n");
 } finally {
   await browser.close();
