@@ -1,6 +1,6 @@
-import { useState, type ReactNode } from "react";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { Calculator as CalculatorIcon, Delete, X } from "lucide-react";
+import { useState } from "react";
+import { createPortal } from "react-dom";
+import { Calculator as CalculatorIcon } from "lucide-react";
 
 export const Calculator = () => {
   const [open, setOpen] = useState(false);
@@ -8,23 +8,29 @@ export const Calculator = () => {
   const [previousValue, setPreviousValue] = useState<number | null>(null);
   const [operation, setOperation] = useState<string | null>(null);
   const [waitingForOperand, setWaitingForOperand] = useState(false);
+  const [memoryValue, setMemoryValue] = useState(0);
+
+  const numericDisplay = () => {
+    const value = Number.parseFloat(display);
+    return Number.isFinite(value) ? value : 0;
+  };
 
   const inputDigit = (digit: string) => {
-    if (waitingForOperand) {
+    if (waitingForOperand || display === "Error") {
       setDisplay(digit);
       setWaitingForOperand(false);
-    } else {
-      setDisplay(display === "0" ? digit : display + digit);
+      return;
     }
+    setDisplay(display === "0" ? digit : display + digit);
   };
 
   const inputDecimal = () => {
-    if (waitingForOperand) {
+    if (waitingForOperand || display === "Error") {
       setDisplay("0.");
       setWaitingForOperand(false);
-    } else if (!display.includes(".")) {
-      setDisplay(display + ".");
+      return;
     }
+    if (!display.includes(".")) setDisplay(`${display}.`);
   };
 
   const clear = () => {
@@ -40,94 +46,122 @@ export const Calculator = () => {
       case "-": return left - right;
       case "×": return left * right;
       case "÷": return right === 0 ? Number.NaN : left / right;
-      case "%": return left % right;
       default: return right;
     }
   };
 
   const performOperation = (nextOperation: string) => {
-    const inputValue = Number.parseFloat(display);
+    const inputValue = numericDisplay();
     if (previousValue === null) {
       setPreviousValue(inputValue);
     } else if (operation) {
       const result = execute(previousValue, inputValue, operation);
-      setDisplay(Number.isFinite(result) ? String(result) : "Error");
-      setPreviousValue(Number.isFinite(result) ? result : null);
+      if (!Number.isFinite(result)) {
+        setDisplay("Error");
+        setPreviousValue(null);
+      } else {
+        setDisplay(String(result));
+        setPreviousValue(result);
+      }
     }
     setWaitingForOperand(true);
     setOperation(nextOperation);
   };
 
-  const calculate = () => {
-    if (!operation || previousValue === null) return;
-    const inputValue = Number.parseFloat(display);
-    const result = execute(previousValue, inputValue, operation);
+  const equals = () => {
+    if (previousValue === null || !operation) return;
+    const result = execute(previousValue, numericDisplay(), operation);
     setDisplay(Number.isFinite(result) ? String(result) : "Error");
     setPreviousValue(null);
     setOperation(null);
     setWaitingForOperand(true);
   };
 
-  const toggleSign = () => {
-    const value = Number.parseFloat(display);
-    if (Number.isFinite(value)) setDisplay(String(value * -1));
+  const negate = () => setDisplay(String(numericDisplay() * -1));
+  const squareRoot = () => {
+    const value = numericDisplay();
+    setDisplay(value < 0 ? "Error" : String(Math.sqrt(value)));
+    setWaitingForOperand(true);
+  };
+  const invert = () => {
+    const value = numericDisplay();
+    setDisplay(value === 0 ? "Error" : String(1 / value));
+    setWaitingForOperand(true);
   };
 
-  const backspace = () => {
-    if (waitingForOperand || display === "Error") {
-      clear();
-      return;
-    }
-    if (display.length <= 1 || (display.length === 2 && display.startsWith("-"))) setDisplay("0");
-    else setDisplay(display.slice(0, -1));
+  const memoryPlus = () => setMemoryValue((value) => value + numericDisplay());
+  const memoryRecall = () => {
+    setDisplay(String(memoryValue));
+    setWaitingForOperand(true);
   };
+  const memoryClear = () => setMemoryValue(0);
 
-  const key = (label: ReactNode, onClick: () => void, kind = "number") => (
-    <button type="button" onClick={onClick} className={`classic-calc-key classic-calc-${kind}`}>{label}</button>
-  );
+  const panel = open
+    ? createPortal(
+        <div className="nbme-calculator-panel" role="dialog" aria-label="Calculator">
+          <div className={`nbme-calc-display${memoryValue !== 0 ? " has-memory" : ""}`}>
+            <span className="nbme-calc-equation">
+              {previousValue !== null && operation ? `${previousValue} ${operation}` : "\u00a0"}
+            </span>
+            <span className="nbme-calc-operand">{display}</span>
+          </div>
+          <table className="nbme-calc-table" aria-label="Calculator keypad">
+            <tbody>
+              <tr>
+                <td><button className="nbme-calc-purple" onClick={memoryPlus}>M+</button></td>
+                <td><button className="nbme-calc-purple" onClick={memoryRecall}>MR</button></td>
+                <td><button className="nbme-calc-purple" onClick={memoryClear}>MC</button></td>
+                <td><button className="nbme-calc-yellow" onClick={clear}>C</button></td>
+              </tr>
+              <tr>
+                <td><button className="nbme-calc-blue" onClick={negate}>±</button></td>
+                <td><button className="nbme-calc-blue" onClick={squareRoot}>√<span className="nbme-root-x">x</span></button></td>
+                <td><button className="nbme-calc-blue" onClick={invert}>1/x</button></td>
+                <td><button className="nbme-calc-blue" onClick={() => performOperation("÷")}>÷</button></td>
+              </tr>
+              <tr>
+                <td><button className="nbme-calc-gray" onClick={() => inputDigit("7")}>7</button></td>
+                <td><button className="nbme-calc-gray" onClick={() => inputDigit("8")}>8</button></td>
+                <td><button className="nbme-calc-gray" onClick={() => inputDigit("9")}>9</button></td>
+                <td><button className="nbme-calc-blue" onClick={() => performOperation("×")}>×</button></td>
+              </tr>
+              <tr>
+                <td><button className="nbme-calc-gray" onClick={() => inputDigit("4")}>4</button></td>
+                <td><button className="nbme-calc-gray" onClick={() => inputDigit("5")}>5</button></td>
+                <td><button className="nbme-calc-gray" onClick={() => inputDigit("6")}>6</button></td>
+                <td><button className="nbme-calc-blue" onClick={() => performOperation("-")}>−</button></td>
+              </tr>
+              <tr>
+                <td><button className="nbme-calc-gray" onClick={() => inputDigit("1")}>1</button></td>
+                <td><button className="nbme-calc-gray" onClick={() => inputDigit("2")}>2</button></td>
+                <td><button className="nbme-calc-gray" onClick={() => inputDigit("3")}>3</button></td>
+                <td><button className="nbme-calc-blue" onClick={() => performOperation("+")}>+</button></td>
+              </tr>
+              <tr>
+                <td colSpan={2}><button className="nbme-calc-gray nbme-calc-wide" onClick={() => inputDigit("0")}>0</button></td>
+                <td><button className="nbme-calc-gray" onClick={inputDecimal}>.</button></td>
+                <td><button className="nbme-calc-yellow" onClick={equals}>=</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>,
+        document.body
+      )
+    : null;
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <button type="button" className="classic-tool-trigger" title="Calculator">
-          <span className="classic-bottom-icon"><CalculatorIcon size={17} strokeWidth={2.2} /></span>
-          <span>Calculator</span>
-        </button>
-      </DialogTrigger>
-      <DialogContent className="classic-calculator-dialog" aria-describedby={undefined}>
-        <div className="classic-reference-titlebar">
-          <span>Calculator</span>
-          <button type="button" onClick={() => setOpen(false)} aria-label="Close calculator"><X size={18} /></button>
-        </div>
-        <div className="classic-calculator-body">
-          <div className="classic-calc-display" aria-live="polite">
-            <small>{previousValue !== null ? `${previousValue} ${operation || ""}` : ""}</small>
-            <strong>{display}</strong>
-          </div>
-          <div className="classic-calc-grid">
-            {key("C", clear, "function")}
-            {key("±", toggleSign, "function")}
-            {key("%", () => performOperation("%"), "function")}
-            {key("÷", () => performOperation("÷"), "operator")}
-            {key("7", () => inputDigit("7"))}
-            {key("8", () => inputDigit("8"))}
-            {key("9", () => inputDigit("9"))}
-            {key("×", () => performOperation("×"), "operator")}
-            {key("4", () => inputDigit("4"))}
-            {key("5", () => inputDigit("5"))}
-            {key("6", () => inputDigit("6"))}
-            {key("−", () => performOperation("-"), "operator")}
-            {key("1", () => inputDigit("1"))}
-            {key("2", () => inputDigit("2"))}
-            {key("3", () => inputDigit("3"))}
-            {key("+", () => performOperation("+"), "operator")}
-            {key("0", () => inputDigit("0"))}
-            {key(<Delete size={16} />, backspace, "function")}
-            {key(".", inputDecimal)}
-            {key("=", calculate, "operator")}
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+    <>
+      <button
+        type="button"
+        className="classic-tool-trigger"
+        title="Calculator"
+        aria-expanded={open}
+        onClick={() => setOpen((value) => !value)}
+      >
+        <span className="classic-tool-square-icon"><CalculatorIcon size={24} strokeWidth={2.3} /></span>
+        <span>Calculator</span>
+      </button>
+      {panel}
+    </>
   );
 };
