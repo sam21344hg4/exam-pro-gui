@@ -1,3 +1,4 @@
+import type { MouseEvent } from "react";
 import { cn } from "@/lib/utils";
 
 interface OptionButtonProps {
@@ -25,7 +26,7 @@ export const OptionButton = ({
   isStrikethrough = false,
   onToggleStrikethrough,
 }: OptionButtonProps) => {
-  const handleContextMenu = (event: React.MouseEvent) => {
+  const handleContextMenu = (event: MouseEvent<HTMLButtonElement>) => {
     if (showResult || !onToggleStrikethrough) return;
     event.preventDefault();
     onToggleStrikethrough();
