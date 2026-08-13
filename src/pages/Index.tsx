@@ -1,18 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { availableExams, ExamData } from "@/data/exams";
 import { StartScreen } from "@/components/StartScreen";
-import { ExamHeader } from "@/components/ExamHeader";
+import { ExamHeader, ExamSectionMeta } from "@/components/ExamHeader";
 import { QuestionCard } from "@/components/QuestionCard";
 import { QuestionStatusPanel } from "@/components/QuestionStatusPanel";
 import { ExamSummary } from "@/components/ExamSummary";
 import { BlockReview } from "@/components/BlockReview";
+import { useExamUI } from "@/components/ExamUIProvider";
 
 type ExamMode = "start" | "timed" | "practice" | "complete" | "review";
 
-const QUESTIONS_PER_SECTION = 50;
-const SECTION_TIME_LIMIT = 60 * 60;
-
 const Index = () => {
+  const { activePopup, closePopup, closeCalculator } = useExamUI();
   const [selectedExam, setSelectedExam] = useState<ExamData>(availableExams[0]);
   const [mode, setMode] = useState<ExamMode>("start");
   const [currentQuestion, setCurrentQuestion] = useState(1);
@@ -20,7 +19,7 @@ const Index = () => {
   const [flagged, setFlagged] = useState<Set<number>>(new Set());
   const [notes, setNotes] = useState<Record<number, string>>({});
   const [showExplanation, setShowExplanation] = useState(false);
-  const [timeRemaining, setTimeRemaining] = useState(SECTION_TIME_LIMIT);
+  const [timeRemaining, setTimeRemaining] = useState(selectedExam.sections[0]?.timeLimitMinutes * 60 || selectedExam.timeLimit * 60);
   const [timeSpent, setTimeSpent] = useState(0);
   const [currentSection, setCurrentSection] = useState(1);
   const [strikethroughs, setStrikethroughs] = useState<Set<string>>(new Set());
@@ -30,30 +29,80 @@ const Index = () => {
 
   const questions = selectedExam.questions;
   const totalQuestions = questions.length;
-  const totalSections = Math.max(1, Math.ceil(totalQuestions / QUESTIONS_PER_SECTION));
+  const totalSections = Math.max(1, selectedExam.sections.length);
 
-  const displayedSection = mode === "timed"
-    ? currentSection
-    : Math.min(totalSections, Math.max(1, Math.ceil(currentQuestion / QUESTIONS_PER_SECTION)));
+  const sectionRanges = useMemo(() => {
+    let cursor = 1;
+    return selectedExam.sections.map((section, index) => {
+      const start = cursor;
+      const declaredEnd = start + section.itemCount - 1;
+      const end = Math.min(declaredEnd, totalQuestions);
+      cursor = declaredEnd + 1;
+      return {
+        block: index + 1,
+        start,
+        end,
+        itemCount: Math.max(end - start + 1, 0),
+        durationSeconds: section.timeLimitMinutes * 60,
+      };
+    }).filter((section) => section.itemCount > 0);
+  }, [selectedExam.sections, totalQuestions]);
 
-  const sectionInfo = useMemo(() => {
-    const sectionStart = (displayedSection - 1) * QUESTIONS_PER_SECTION + 1;
-    const sectionEnd = Math.min(displayedSection * QUESTIONS_PER_SECTION, totalQuestions);
-    return { sectionStart, sectionEnd };
-  }, [displayedSection, totalQuestions]);
+  const effectiveTotalSections = Math.max(1, sectionRanges.length);
+
+  const displayedSection = useMemo(() => {
+    if (mode === "timed") return Math.min(currentSection, effectiveTotalSections);
+    const found = sectionRanges.find((range) => currentQuestion >= range.start && currentQuestion <= range.end);
+    return found?.block || 1;
+  }, [mode, currentSection, currentQuestion, effectiveTotalSections, sectionRanges]);
+
+  const sectionInfo = sectionRanges[displayedSection - 1] || {
+    block: 1,
+    start: 1,
+    end: totalQuestions,
+    itemCount: totalQuestions,
+    durationSeconds: selectedExam.timeLimit * 60,
+  };
 
   const question = questions.find((item) => item.id === currentQuestion) || questions[0];
 
   const sectionQuestions = useMemo(
-    () => Array.from(
-      { length: Math.max(sectionInfo.sectionEnd - sectionInfo.sectionStart + 1, 0) },
-      (_, index) => sectionInfo.sectionStart + index
-    ),
-    [sectionInfo.sectionStart, sectionInfo.sectionEnd]
+    () => Array.from({ length: sectionInfo.itemCount }, (_, index) => sectionInfo.start + index),
+    [sectionInfo.itemCount, sectionInfo.start]
   );
 
   const answeredInSection = sectionQuestions.filter((number) => answers[number] !== undefined).length;
   const markedInSection = sectionQuestions.filter((number) => flagged.has(number)).length;
+  const dayTimeLimitSeconds = sectionRanges.reduce((sum, section) => sum + section.durationSeconds, 0) || selectedExam.timeLimit * 60;
+
+  const overviewSections = useMemo<ExamSectionMeta[]>(
+    () => sectionRanges.map((section) => ({
+      block: section.block,
+      itemCount: section.itemCount,
+      durationSeconds: section.durationSeconds,
+      completed: mode === "timed" ? section.block < currentSection : false,
+    })),
+    [sectionRanges, mode, currentSection]
+  );
+
+  const scrollExamTop = useCallback(() => {
+    window.requestAnimationFrame(() => {
+      document.querySelector<HTMLElement>(".classic-exam-main")?.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    });
+  }, []);
+
+  const dismissTransientTools = useCallback(() => {
+    if (activePopup && activePopup !== "notes") closePopup(activePopup);
+    closeCalculator();
+  }, [activePopup, closePopup, closeCalculator]);
+
+  const sectionTime = useCallback((sectionNumber: number) => {
+    return sectionRanges[sectionNumber - 1]?.durationSeconds || selectedExam.timeLimit * 60;
+  }, [sectionRanges, selectedExam.timeLimit]);
+
+  const sectionStart = useCallback((sectionNumber: number) => {
+    return sectionRanges[sectionNumber - 1]?.start || 1;
+  }, [sectionRanges]);
 
   const resetSessionState = useCallback(() => {
     setCurrentQuestion(1);
@@ -62,39 +111,41 @@ const Index = () => {
     setFlagged(new Set());
     setNotes({});
     setShowExplanation(false);
-    setTimeRemaining(SECTION_TIME_LIMIT);
+    setTimeRemaining(sectionTime(1));
     setTimeSpent(0);
     setStrikethroughs(new Set());
     setHighlights({});
     setShowBlockReview(false);
     setIsPaused(false);
-  }, []);
+    dismissTransientTools();
+  }, [sectionTime, dismissTransientTools]);
 
   useEffect(() => {
     if (mode !== "timed" || isPaused) return;
-
     const interval = window.setInterval(() => {
       setTimeRemaining((previous) => Math.max(previous - 1, 0));
       setTimeSpent((previous) => previous + 1);
     }, 1000);
-
     return () => window.clearInterval(interval);
   }, [mode, isPaused]);
 
   useEffect(() => {
     if (mode !== "timed" || timeRemaining > 0) return;
 
-    if (currentSection < totalSections) {
+    if (currentSection < effectiveTotalSections) {
       const nextSection = currentSection + 1;
       setCurrentSection(nextSection);
-      setCurrentQuestion((nextSection - 1) * QUESTIONS_PER_SECTION + 1);
-      setTimeRemaining(SECTION_TIME_LIMIT);
+      setCurrentQuestion(sectionStart(nextSection));
+      setTimeRemaining(sectionTime(nextSection));
       setShowExplanation(false);
       setShowBlockReview(false);
+      dismissTransientTools();
+      scrollExamTop();
     } else {
       setMode("complete");
+      dismissTransientTools();
     }
-  }, [mode, timeRemaining, currentSection, totalSections]);
+  }, [mode, timeRemaining, currentSection, effectiveTotalSections, sectionStart, sectionTime, dismissTransientTools, scrollExamTop]);
 
   useEffect(() => {
     if (mode !== "practice" || isPaused) return;
@@ -104,7 +155,10 @@ const Index = () => {
 
   const handleSelectExam = useCallback((examId: string) => {
     const exam = availableExams.find((item) => item.id === examId);
-    if (exam) setSelectedExam(exam);
+    if (exam) {
+      setSelectedExam(exam);
+      setTimeRemaining(exam.sections[0]?.timeLimitMinutes * 60 || exam.timeLimit * 60);
+    }
   }, []);
 
   const handleStart = useCallback(() => {
@@ -120,32 +174,31 @@ const Index = () => {
   const handleEndSection = useCallback(() => {
     setShowBlockReview(false);
     setIsPaused(false);
+    dismissTransientTools();
 
-    if (currentSection < totalSections) {
+    if (currentSection < effectiveTotalSections) {
       const nextSection = currentSection + 1;
       setCurrentSection(nextSection);
-      setCurrentQuestion((nextSection - 1) * QUESTIONS_PER_SECTION + 1);
-      setTimeRemaining(SECTION_TIME_LIMIT);
+      setCurrentQuestion(sectionStart(nextSection));
+      setTimeRemaining(sectionTime(nextSection));
       setShowExplanation(false);
-      window.scrollTo({ top: 0 });
+      scrollExamTop();
     } else {
       setMode("complete");
     }
-  }, [currentSection, totalSections]);
+  }, [currentSection, effectiveTotalSections, sectionStart, sectionTime, dismissTransientTools, scrollExamTop]);
 
   const handleEndBlock = useCallback(() => {
-    if (mode === "timed") {
-      handleEndSection();
-    } else {
+    if (mode === "timed") handleEndSection();
+    else {
       setMode("complete");
       setShowBlockReview(false);
+      dismissTransientTools();
     }
-  }, [mode, handleEndSection]);
+  }, [mode, handleEndSection, dismissTransientTools]);
 
   const handleSelectAnswer = useCallback((answer: string) => {
     if (mode === "review") return;
-
-    // StartTest source behavior: selecting an option removes strikeout from that option.
     const strikeKey = `${currentQuestion}-${answer}`;
     setStrikethroughs((previous) => {
       if (!previous.has(strikeKey)) return previous;
@@ -153,17 +206,18 @@ const Index = () => {
       next.delete(strikeKey);
       return next;
     });
-
     setAnswers((previous) => ({ ...previous, [currentQuestion]: answer }));
   }, [currentQuestion, mode]);
 
   const handleNext = useCallback(() => {
     if (showBlockReview) return;
+    dismissTransientTools();
 
     if (mode === "timed") {
-      if (currentQuestion < sectionInfo.sectionEnd) {
+      if (currentQuestion < sectionInfo.end) {
         setCurrentQuestion((previous) => previous + 1);
         setShowExplanation(false);
+        scrollExamTop();
       } else {
         setShowBlockReview(true);
       }
@@ -173,38 +227,42 @@ const Index = () => {
     if (currentQuestion < totalQuestions) {
       setCurrentQuestion((previous) => previous + 1);
       setShowExplanation(mode === "review");
+      scrollExamTop();
     } else if (mode !== "review") {
       setMode("complete");
     }
-  }, [showBlockReview, mode, currentQuestion, sectionInfo.sectionEnd, totalQuestions]);
+  }, [showBlockReview, dismissTransientTools, mode, currentQuestion, sectionInfo.end, totalQuestions, scrollExamTop]);
 
   const handlePrevious = useCallback(() => {
     if (showBlockReview) return;
-
-    const lowerBound = mode === "timed" ? sectionInfo.sectionStart : 1;
+    const lowerBound = mode === "timed" ? sectionInfo.start : 1;
     if (currentQuestion > lowerBound) {
+      dismissTransientTools();
       setCurrentQuestion((previous) => previous - 1);
       setShowExplanation(mode === "review");
+      scrollExamTop();
     }
-  }, [showBlockReview, mode, currentQuestion, sectionInfo.sectionStart]);
+  }, [showBlockReview, mode, sectionInfo.start, currentQuestion, dismissTransientTools, scrollExamTop]);
 
   const handleFlag = useCallback(() => {
+    if (mode === "review") return;
     setFlagged((previous) => {
       const next = new Set(previous);
       if (next.has(currentQuestion)) next.delete(currentQuestion);
       else next.add(currentQuestion);
       return next;
     });
-  }, [currentQuestion]);
+  }, [currentQuestion, mode]);
 
   const handleNavigate = useCallback((questionNumber: number) => {
-    const lower = mode === "timed" ? sectionInfo.sectionStart : 1;
-    const upper = mode === "timed" ? sectionInfo.sectionEnd : totalQuestions;
+    const lower = mode === "timed" ? sectionInfo.start : 1;
+    const upper = mode === "timed" ? sectionInfo.end : totalQuestions;
     if (questionNumber < lower || questionNumber > upper) return;
+    dismissTransientTools();
     setCurrentQuestion(questionNumber);
     setShowExplanation(mode === "review");
-    window.scrollTo({ top: 0 });
-  }, [mode, sectionInfo.sectionStart, sectionInfo.sectionEnd, totalQuestions]);
+    scrollExamTop();
+  }, [mode, sectionInfo.start, sectionInfo.end, totalQuestions, dismissTransientTools, scrollExamTop]);
 
   const handleToggleStrikethrough = useCallback((optionLabel: string) => {
     const key = `${currentQuestion}-${optionLabel}`;
@@ -216,14 +274,14 @@ const Index = () => {
     });
   }, [currentQuestion]);
 
-  const handleNoteChange = useCallback((value: string) => {
+  const handleNoteChange = useCallback((itemId: number, value: string) => {
     setNotes((previous) => {
       const next = { ...previous };
-      if (value.trim()) next[currentQuestion] = value;
-      else delete next[currentQuestion];
+      if (value.trim()) next[itemId] = value;
+      else delete next[itemId];
       return next;
     });
-  }, [currentQuestion]);
+  }, []);
 
   const handleAddHighlight = useCallback((text: string) => {
     setHighlights((previous) => {
@@ -251,66 +309,54 @@ const Index = () => {
   }, [resetSessionState]);
 
   const handlePostExamReview = useCallback(() => {
+    dismissTransientTools();
     setMode("review");
     setCurrentQuestion(1);
     setCurrentSection(1);
     setShowExplanation(true);
     setShowBlockReview(false);
     setIsPaused(false);
-  }, []);
+    scrollExamTop();
+  }, [dismissTransientTools, scrollExamTop]);
 
   if (mode === "start") {
-    return (
-      <StartScreen
-        exams={availableExams}
-        selectedExam={selectedExam}
-        onSelectExam={handleSelectExam}
-        onStart={handleStart}
-        onPractice={handlePractice}
-      />
-    );
+    return <StartScreen exams={availableExams} selectedExam={selectedExam} onSelectExam={handleSelectExam} onStart={handleStart} onPractice={handlePractice} />;
   }
 
   if (mode === "complete") {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-background">
-        <ExamSummary
-          questions={questions}
-          answers={answers}
-          timeSpent={timeSpent}
-          onRestart={handleRestart}
-          onReview={handlePostExamReview}
-        />
+        <ExamSummary questions={questions} answers={answers} timeSpent={timeSpent} onRestart={handleRestart} onReview={handlePostExamReview} />
       </div>
     );
   }
 
-  const timedLowerBound = sectionInfo.sectionStart;
-  const timedUpperBound = sectionInfo.sectionEnd;
-  const canPrevious = !showBlockReview && currentQuestion > (mode === "timed" ? timedLowerBound : 1);
-  const canNext = !showBlockReview && (
-    mode === "timed" ? currentQuestion <= timedUpperBound : currentQuestion < totalQuestions
-  );
+  const canPrevious = !showBlockReview && currentQuestion > (mode === "timed" ? sectionInfo.start : 1);
+  const canNext = !showBlockReview && currentQuestion < (mode === "timed" ? sectionInfo.end : totalQuestions);
+  const displayNumber = currentQuestion - sectionInfo.start + 1;
 
   return (
     <div className="classic-exam-shell">
+      <a className="classic-skip-link" href="#classic-main">Skip to main</a>
+      <a className="classic-skip-link" href="#classic-status">Skip to navigation</a>
+      <div className="classic-visually-hidden" aria-live="assertive">Item {displayNumber} of {sectionInfo.itemCount}</div>
+
       <ExamHeader
         currentQuestion={currentQuestion}
         timeRemaining={timeRemaining}
         timeSpent={timeSpent}
         onPrevious={handlePrevious}
         onNext={handleNext}
-        onFlag={handleFlag}
-        isFlagged={flagged.has(currentQuestion)}
         onEndBlock={handleEndBlock}
-        onReview={() => setShowBlockReview(true)}
         onPause={() => setIsPaused(true)}
         showTimer={mode === "timed"}
         currentSection={displayedSection}
-        totalSections={totalSections}
-        sectionStart={sectionInfo.sectionStart}
-        sectionEnd={sectionInfo.sectionEnd}
-        examTitle={selectedExam.section || selectedExam.title}
+        totalSections={effectiveTotalSections}
+        sectionStart={sectionInfo.start}
+        sectionEnd={sectionInfo.end}
+        sectionTimeLimitSeconds={sectionInfo.durationSeconds}
+        dayTimeLimitSeconds={dayTimeLimitSeconds}
+        sections={overviewSections}
         answeredInSection={answeredInSection}
         markedInSection={markedInSection}
         canPrevious={canPrevious}
@@ -320,41 +366,27 @@ const Index = () => {
       />
 
       {!showBlockReview ? (
-        <QuestionStatusPanel
-          sectionStart={sectionInfo.sectionStart}
-          sectionEnd={sectionInfo.sectionEnd}
-          currentQuestion={currentQuestion}
-          answers={answers}
-          flagged={flagged}
-          notes={notes}
-          onNavigate={handleNavigate}
-        />
+        <div id="classic-status">
+          <QuestionStatusPanel sectionStart={sectionInfo.start} sectionEnd={sectionInfo.end} currentQuestion={currentQuestion} answers={answers} flagged={flagged} notes={notes} onNavigate={handleNavigate} />
+        </div>
       ) : null}
 
-      <main className="classic-exam-main" aria-live="polite">
+      <main id="classic-main" className="classic-exam-main" aria-live="polite">
         {showBlockReview ? (
-          <BlockReview
-            sectionStart={sectionInfo.sectionStart}
-            sectionEnd={sectionInfo.sectionEnd}
-            currentQuestion={currentQuestion}
-            answers={answers}
-            flagged={flagged}
-            onNavigate={handleNavigate}
-            onReturn={() => setShowBlockReview(false)}
-            onEndBlock={handleEndBlock}
-          />
+          <BlockReview sectionStart={sectionInfo.start} sectionEnd={sectionInfo.end} currentQuestion={currentQuestion} answers={answers} flagged={flagged} onNavigate={handleNavigate} onReturn={() => setShowBlockReview(false)} onEndBlock={handleEndBlock} />
         ) : (
           <QuestionCard
             question={question}
+            displayNumber={displayNumber}
             selectedAnswer={answers[currentQuestion] || null}
             showExplanation={showExplanation || mode === "review"}
             onSelectAnswer={handleSelectAnswer}
             onNext={handleNext}
-            fontSize={18}
             strikethroughs={strikethroughs}
             onToggleStrikethrough={handleToggleStrikethrough}
             isFlagged={flagged.has(currentQuestion)}
             onFlag={handleFlag}
+            canMark={mode !== "review"}
             highlights={highlights[currentQuestion] || []}
             onAddHighlight={handleAddHighlight}
             onRemoveHighlight={handleRemoveHighlight}
