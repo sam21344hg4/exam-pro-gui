@@ -34,6 +34,15 @@ interface ExamUIContextValue {
 
 const ExamUIContext = createContext<ExamUIContextValue | null>(null);
 
+const focusIsWithin = (selectors: string) => {
+  const active = document.activeElement;
+  if (!(active instanceof HTMLElement)) return false;
+  return selectors.split(",").some((selector) => {
+    const element = document.querySelector(selector.trim());
+    return element instanceof HTMLElement && (element === active || element.contains(active));
+  });
+};
+
 export const ExamUIProvider = ({ children }: { children: ReactNode }) => {
   const [activePopup, setActivePopup] = useState<ExamPopup>(null);
   const [calculatorOpen, setCalculatorOpen] = useState(false);
@@ -125,13 +134,24 @@ export const ExamUIProvider = ({ children }: { children: ReactNode }) => {
       if (event.key !== "Escape") return;
       if (activePopup === "notes" || activePopup === "unauthorizedBreak") return;
 
+      const blocking = activePopup === "help" || activePopup === "end" || activePopup === "lockWarning";
+      const focusSelectors: Partial<Record<Exclude<ExamPopup, null>, string>> = {
+        settings: ".source-settings-menu,.classic-header-settings",
+        timer: ".source-timer-panel,.source-timer-trigger",
+        overview: ".source-overview-panel,.source-item-info-trigger",
+        lab: ".source-lab-panel,[title='Lab Values']",
+        zoom: ".source-image-viewer",
+      };
+
       if (activePopup) {
+        const selectors = focusSelectors[activePopup];
+        if (!blocking && selectors && !focusIsWithin(selectors)) return;
         event.preventDefault();
         closePopup(activePopup);
         return;
       }
 
-      if (calculatorOpen) {
+      if (calculatorOpen && focusIsWithin(".nbme-calculator-panel,[title='Calculator']")) {
         event.preventDefault();
         setCalculatorOpen(false);
       }
