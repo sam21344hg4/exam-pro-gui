@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Contrast, Flag, Search, X } from "lucide-react";
+import { Contrast, RotateCcw, Search, X, ZoomIn, ZoomOut } from "lucide-react";
 import { Question } from "@/data/examQuestions";
 import { OptionButton } from "./OptionButton";
 import { useExamUI } from "./ExamUIProvider";
@@ -14,9 +14,6 @@ interface QuestionCardProps {
   onNext?: () => void;
   strikethroughs: Set<string>;
   onToggleStrikethrough: (optionLabel: string) => void;
-  isFlagged?: boolean;
-  onFlag?: () => void;
-  canMark?: boolean;
   highlights?: string[];
   onAddHighlight?: (text: string) => void;
   onRemoveHighlight?: (text: string) => void;
@@ -33,9 +30,6 @@ export const QuestionCard = ({
   onNext,
   strikethroughs,
   onToggleStrikethrough,
-  isFlagged = false,
-  onFlag,
-  canMark = true,
   highlights = [],
   onAddHighlight,
   onRemoveHighlight,
@@ -145,20 +139,9 @@ export const QuestionCard = ({
       <div className={`source-image-slider source-image-slider-${tool}`}>
         <div className="source-image-slider-title">{isInvert ? "Invert" : "Contrast"}</div>
         <div className="source-image-slider-track-wrap">
-          <input
-            aria-label={`${isInvert ? "Invert" : "Contrast"} adjustment`}
-            type="range"
-            min="-100"
-            max="100"
-            step="1"
-            value={value}
-            onChange={(event) => setValue(Number(event.target.value))}
-          />
+          <input aria-label={`${isInvert ? "Invert" : "Contrast"} adjustment`} type="range" min="-100" max="100" step="1" value={value} onChange={(event) => setValue(Number(event.target.value))} />
         </div>
-        <label className="source-image-slider-toggle">
-          On/Off
-          <input type="checkbox" checked={enabled} onChange={(event) => setEnabled(event.target.checked)} />
-        </label>
+        <label className="source-image-slider-toggle">On/Off<input type="checkbox" checked={enabled} onChange={(event) => setEnabled(event.target.checked)} /></label>
         <button type="button" className="source-image-slider-reset" onClick={reset}>Reset</button>
       </div>
     );
@@ -178,14 +161,6 @@ export const QuestionCard = ({
         className="classic-question-card"
         aria-hidden={isZoomOpen ? true : undefined}
       >
-        {canMark ? (
-          <label className={`classic-question-mark ${isFlagged ? "is-marked" : ""}`}>
-            <input type="checkbox" checked={isFlagged} onChange={() => onFlag?.()} aria-label="Mark question" />
-            <Flag size={15} strokeWidth={1.8} aria-hidden="true" />
-            <span>Mark Question</span>
-          </label>
-        ) : null}
-
         <div ref={stemRef} className="classic-question-stem" onMouseUp={handleStemMouseUp}>
           <span className="classic-question-number">{displayNumber}.</span>
           <div>
@@ -195,39 +170,23 @@ export const QuestionCard = ({
                 <div className="classic-image-frame source-media-gallery">
                   <div className="classic-image-tools" aria-label="Image tools">
                     <div className="source-image-tool-wrap">
-                      <button
-                        type="button"
-                        className={activeImageTool === "invert" ? "is-active" : ""}
-                        aria-pressed={activeImageTool === "invert"}
-                        onClick={() => setActiveImageTool((value) => value === "invert" ? null : "invert")}
-                        title="Invert"
-                      >
+                      <button type="button" className={activeImageTool === "invert" ? "is-active" : ""} aria-pressed={activeImageTool === "invert"} onClick={() => setActiveImageTool((value) => value === "invert" ? null : "invert")} title="Invert">
                         <span className="classic-invert-icon" aria-hidden="true" /><span>Invert</span>
                       </button>
                       {activeImageTool === "invert" ? renderSlider("invert") : null}
                     </div>
 
                     <div className="source-image-tool-wrap">
-                      <button
-                        type="button"
-                        className={activeImageTool === "contrast" ? "is-active" : ""}
-                        aria-pressed={activeImageTool === "contrast"}
-                        onClick={() => setActiveImageTool((value) => value === "contrast" ? null : "contrast")}
-                        title="Contrast"
-                      >
+                      <button type="button" className={activeImageTool === "contrast" ? "is-active" : ""} aria-pressed={activeImageTool === "contrast"} onClick={() => setActiveImageTool((value) => value === "contrast" ? null : "contrast")} title="Contrast">
                         <Contrast size={28} strokeWidth={1.8} /><span>Contrast</span>
                       </button>
                       {activeImageTool === "contrast" ? renderSlider("contrast") : null}
                     </div>
 
-                    <button ref={zoomTriggerRef} type="button" onClick={openZoom} title="Zoom">
-                      <Search size={29} strokeWidth={1.8} /><span>Zoom</span>
-                    </button>
+                    <button ref={zoomTriggerRef} type="button" onClick={openZoom} title="Zoom"><Search size={29} strokeWidth={1.8} /><span>Zoom</span></button>
                   </div>
 
-                  <div className="classic-image-canvas">
-                    <img src={question.image} alt={question.imageCaption || "Question image"} style={{ filter: imageFilter }} draggable={false} />
-                  </div>
+                  <div className="classic-image-canvas"><img src={question.image} alt={question.imageCaption || "Question image"} style={{ filter: imageFilter }} draggable={false} /></div>
                 </div>
                 {question.imageCaption ? <figcaption>{question.imageCaption}</figcaption> : null}
               </figure>
@@ -252,9 +211,7 @@ export const QuestionCard = ({
           ))}
         </div>
 
-        {!showExplanation && onNext ? (
-          <div className="classic-proceed-row"><button type="button" className="classic-proceed-button" onClick={onNext}>Proceed to Next Item</button></div>
-        ) : null}
+        {!showExplanation && onNext ? <div className="classic-proceed-row"><button type="button" className="classic-proceed-button" onClick={onNext}>Proceed to Next Item</button></div> : null}
 
         {showExplanation ? (
           <div className={`classic-explanation ${isCorrect ? "correct" : "incorrect"}`}>
@@ -267,22 +224,15 @@ export const QuestionCard = ({
 
       {isZoomOpen && question.image ? (
         <section className="source-image-viewer" role="dialog" aria-modal="false" aria-label="Magnified image">
-          <div className="source-viewer-toolbar" role="group" aria-label="Image zoom controls">
-            <button type="button" onClick={zoomIn} disabled={zoomLevel >= 4}>Zoom In</button>
-            <button type="button" onClick={zoomOut} disabled={zoomLevel <= 0.25}>Zoom Out</button>
-            <button type="button" onClick={() => setZoomLevel(1)} disabled={zoomLevel === 1}>Reset</button>
+          <div className="source-viewer-toolbar viewer-toolbar" role="group" aria-label="Image zoom controls">
+            <button type="button" className="viewer-zoom-in" onClick={zoomIn} disabled={zoomLevel >= 4}><ZoomIn aria-hidden="true" /><span>Zoom In</span></button>
+            <button type="button" className="viewer-zoom-out" onClick={zoomOut} disabled={zoomLevel <= 0.25}><ZoomOut aria-hidden="true" /><span>Zoom Out</span></button>
+            <button type="button" className="viewer-reset" onClick={() => setZoomLevel(1)} disabled={zoomLevel === 1}><RotateCcw aria-hidden="true" /><span>Reset</span></button>
           </div>
-          <button type="button" className="source-viewer-close" onClick={() => closePopup("zoom")} aria-label="Close magnified image">
-            <span className="source-viewer-close-icon"><X size={30} /></span><span>Close</span>
-          </button>
+          <button type="button" className="source-viewer-close viewer-close" onClick={() => closePopup("zoom")} aria-label="Close magnified image"><span className="source-viewer-close-icon"><X size={30} /></span><span>Close</span></button>
           <div className="source-viewer-canvas">
             <div className="source-viewer-image-wrap">
-              <img
-                src={question.image}
-                alt={question.imageCaption || "Magnified question image"}
-                style={{ filter: imageFilter, width: `${90 * zoomLevel}%` }}
-                draggable={false}
-              />
+              <img src={question.image} alt={question.imageCaption || "Magnified question image"} style={{ filter: imageFilter, width: `${100 * zoomLevel}%` }} draggable={false} />
             </div>
           </div>
         </section>
