@@ -6,5 +6,6 @@ import "./starttest-tools.css";
 import "./starttest-layout.css";
 import "./starttest-zoom-fix.css";
 import "./starttest-answer-fix.css";
+import "./source-lab-values.css";
 
 createRoot(document.getElementById("root")!).render(<App />);
