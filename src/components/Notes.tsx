@@ -74,7 +74,6 @@ export const Notes = ({ notes, onNotesChange }: NotesProps) => {
       >
         <span className="classic-tool-square-icon"><StickyNote size={23} strokeWidth={2.1} /></span>
         <span>Notes</span>
-        {notes.length > 0 ? <span className="classic-notes-indicator" aria-hidden="true" /> : null}
       </button>
       {panel}
     </>
