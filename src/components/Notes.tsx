@@ -15,7 +15,17 @@ export const Notes = ({ notes, onNotesChange }: NotesProps) => {
     if (!open) setDraft(notes);
   }, [notes, open]);
 
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [open]);
+
   const openPanel = () => {
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
     setDraft(notes);
     setOpen(true);
   };
