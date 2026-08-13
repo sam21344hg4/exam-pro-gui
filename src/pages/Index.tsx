@@ -141,7 +141,7 @@ const Index = () => {
   }, [mode, handleEndSection]);
 
   const handleSelectAnswer = useCallback((answer: string) => {
-    if (mode === "review" || showExplanation) return;
+    if (mode === "review") return;
 
     const strikeKey = `${currentQuestion}-${answer}`;
     setStrikethroughs((previous) => {
@@ -152,8 +152,7 @@ const Index = () => {
     });
 
     setAnswers((previous) => ({ ...previous, [currentQuestion]: answer }));
-    if (mode === "practice") setShowExplanation(true);
-  }, [currentQuestion, mode, showExplanation]);
+  }, [currentQuestion, mode]);
 
   const handleNext = useCallback(() => {
     if (showBlockReview) return;
@@ -345,6 +344,7 @@ const Index = () => {
             selectedAnswer={answers[currentQuestion] || null}
             showExplanation={showExplanation || mode === "review"}
             onSelectAnswer={handleSelectAnswer}
+            onNext={handleNext}
             fontSize={18}
             strikethroughs={strikethroughs}
             onToggleStrikethrough={handleToggleStrikethrough}
