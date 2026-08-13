@@ -20,6 +20,7 @@ interface ExamUIContextValue {
   openPopup: (popup: Exclude<ExamPopup, null>) => void;
   closePopup: (popup?: Exclude<ExamPopup, null>) => void;
   togglePopup: (popup: Exclude<ExamPopup, null>) => void;
+  dismissAllTools: () => void;
   openCalculator: () => void;
   closeCalculator: () => void;
   toggleCalculator: () => void;
@@ -68,9 +69,6 @@ export const ExamUIProvider = ({ children }: { children: ReactNode }) => {
 
     setSuspendedPopup(null);
     setActivePopup(popup);
-
-    // StartTest can keep Calculator beside Notes when space allows. Other modal/panel
-    // tools replace it so controls do not stack over one another.
     if (popup !== "notes") setCalculatorOpen(false);
   };
 
@@ -84,6 +82,12 @@ export const ExamUIProvider = ({ children }: { children: ReactNode }) => {
       setSuspendedPopup(null);
       return null;
     });
+  };
+
+  const dismissAllTools = () => {
+    setSuspendedPopup(null);
+    setActivePopup(null);
+    setCalculatorOpen(false);
   };
 
   const togglePopup = (popup: Exclude<ExamPopup, null>) => {
@@ -107,9 +111,6 @@ export const ExamUIProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
-
-      // Notes owns Escape because StartTest saves/deletes the current note before
-      // closing it. Do not pre-empt that component-level behavior here.
       if (activePopup === "notes") return;
 
       if (activePopup) {
@@ -137,6 +138,7 @@ export const ExamUIProvider = ({ children }: { children: ReactNode }) => {
     openPopup,
     closePopup,
     togglePopup,
+    dismissAllTools,
     openCalculator,
     closeCalculator,
     toggleCalculator,
