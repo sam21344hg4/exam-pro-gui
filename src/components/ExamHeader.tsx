@@ -1,15 +1,16 @@
-import { useEffect, useMemo, useState } from "react";
-import {
-  ChevronLeft,
-  ChevronRight,
-  LockKeyhole,
-  Menu,
-  Pause,
-  X,
-} from "lucide-react";
-import { LabValues } from "./LabValues";
+import { useEffect, useState } from "react";
+import { ChevronLeft, ChevronRight, LockKeyhole, Menu, Pause, X } from "lucide-react";
 import { Calculator } from "./Calculator";
+import { CoordinatedLabValues } from "./CoordinatedLabValues";
 import { Notes } from "./Notes";
+import { useExamUI } from "./ExamUIProvider";
+
+export interface ExamSectionMeta {
+  block: number;
+  itemCount: number;
+  durationSeconds: number;
+  completed: boolean;
+}
 
 interface ExamHeaderProps {
   currentQuestion: number;
@@ -17,17 +18,16 @@ interface ExamHeaderProps {
   timeSpent: number;
   onPrevious: () => void;
   onNext: () => void;
-  onFlag: () => void;
-  isFlagged: boolean;
   onEndBlock: () => void;
-  onReview: () => void;
   onPause: () => void;
   showTimer: boolean;
   currentSection: number;
-  totalSections?: number;
+  totalSections: number;
   sectionStart: number;
   sectionEnd: number;
-  examTitle: string;
+  sectionTimeLimitSeconds: number;
+  dayTimeLimitSeconds: number;
+  sections: ExamSectionMeta[];
   answeredInSection: number;
   markedInSection: number;
   canPrevious: boolean;
@@ -36,8 +36,21 @@ interface ExamHeaderProps {
   onNoteChange: (note: string) => void;
 }
 
-type OpenPanel = "settings" | "help" | "timer" | "overview" | "end" | null;
-const BLOCK_SECONDS = 60 * 60;
+const formatClock = (seconds: number) => {
+  const safe = Math.max(0, Math.floor(seconds));
+  const hours = Math.floor(safe / 3600);
+  const minutes = Math.floor((safe % 3600) / 60);
+  const secs = safe % 60;
+  return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+};
+
+const formatLongTime = (seconds: number) => {
+  const safe = Math.max(0, Math.floor(seconds));
+  const hours = Math.floor(safe / 3600);
+  const minutes = Math.floor((safe % 3600) / 60);
+  const secs = safe % 60;
+  return `${hours} hr ${minutes} min ${secs} sec`;
+};
 
 export const ExamHeader = ({
   currentQuestion,
@@ -49,9 +62,12 @@ export const ExamHeader = ({
   onPause,
   showTimer,
   currentSection,
-  totalSections = currentSection,
+  totalSections,
   sectionStart,
   sectionEnd,
+  sectionTimeLimitSeconds,
+  dayTimeLimitSeconds,
+  sections,
   answeredInSection,
   markedInSection,
   canPrevious,
@@ -59,82 +75,51 @@ export const ExamHeader = ({
   note,
   onNoteChange,
 }: ExamHeaderProps) => {
-  const [openPanel, setOpenPanel] = useState<OpenPanel>(null);
+  const {
+    activePopup,
+    openPopup,
+    closePopup,
+    togglePopup,
+    showStrikeout,
+    setShowStrikeout,
+    textZoom,
+    setTextZoom,
+    darkTheme,
+    setDarkTheme,
+  } = useExamUI();
+
   const [showResizeMenu, setShowResizeMenu] = useState(false);
   const [showColorMenu, setShowColorMenu] = useState(false);
-  const [showStrikeout, setShowStrikeout] = useState(true);
-  const [textZoom, setTextZoom] = useState(100);
-  const [darkTheme, setDarkTheme] = useState(false);
 
   const itemInSection = currentQuestion - sectionStart + 1;
-  const itemsInSection = sectionEnd - sectionStart + 1;
+  const itemsInSection = Math.max(sectionEnd - sectionStart + 1, 0);
   const unanswered = Math.max(itemsInSection - answeredInSection, 0);
-  const blockElapsed = showTimer ? Math.max(BLOCK_SECONDS - timeRemaining, 0) : timeSpent;
-  const dayTotal = totalSections * BLOCK_SECONDS;
-  const dayRemaining = showTimer ? Math.max((totalSections - currentSection) * BLOCK_SECONDS + timeRemaining, 0) : 0;
-  const dayElapsed = showTimer ? Math.max(dayTotal - dayRemaining, 0) : timeSpent;
-
-  const overviewRows = useMemo(
-    () => Array.from({ length: totalSections }, (_, index) => ({
-      block: index + 1,
-      completed: index + 1 < currentSection,
-      items: index + 1 === totalSections ? Math.max(1, sectionEnd - (totalSections - 1) * 50) : 50,
-    })),
-    [currentSection, sectionEnd, totalSections]
-  );
+  const blockElapsed = showTimer ? Math.max(sectionTimeLimitSeconds - timeRemaining, 0) : timeSpent;
+  const dayRemaining = showTimer ? Math.max(dayTimeLimitSeconds - timeSpent, 0) : 0;
+  const dayElapsed = showTimer ? Math.min(timeSpent, dayTimeLimitSeconds) : timeSpent;
 
   useEffect(() => {
-    document.body.classList.toggle("classic-show-strikeout", showStrikeout);
-    return () => document.body.classList.remove("classic-show-strikeout");
-  }, [showStrikeout]);
+    if (activePopup !== "settings") {
+      setShowResizeMenu(false);
+      setShowColorMenu(false);
+    }
+  }, [activePopup]);
 
   useEffect(() => {
-    document.documentElement.classList.toggle("classic-dark-theme", darkTheme);
-    return () => document.documentElement.classList.remove("classic-dark-theme");
-  }, [darkTheme]);
-
-  useEffect(() => {
-    document.documentElement.dataset.examTextZoom = String(textZoom);
-    return () => { delete document.documentElement.dataset.examTextZoom; };
-  }, [textZoom]);
-
-  useEffect(() => {
+    if (activePopup !== "settings") return;
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== "Escape") return;
-      if (showResizeMenu || showColorMenu) {
-        setShowResizeMenu(false);
-        setShowColorMenu(false);
-        return;
-      }
-      setOpenPanel(null);
+      if (event.key !== "Escape" || (!showResizeMenu && !showColorMenu)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      setShowResizeMenu(false);
+      setShowColorMenu(false);
     };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [showResizeMenu, showColorMenu]);
-
-  const formatTime = (seconds: number) => {
-    if (!showTimer) return "untimed";
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  };
-
-  const formatLongTime = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return `${hours} hr ${minutes} min ${secs} sec`;
-  };
-
-  const togglePanel = (panel: OpenPanel) => {
-    setShowResizeMenu(false);
-    setShowColorMenu(false);
-    setOpenPanel((current) => current === panel ? null : panel);
-  };
+    window.addEventListener("keydown", onKeyDown, true);
+    return () => window.removeEventListener("keydown", onKeyDown, true);
+  }, [activePopup, showResizeMenu, showColorMenu]);
 
   const confirmEndBlock = () => {
-    setOpenPanel(null);
+    closePopup("end");
     onEndBlock();
   };
 
@@ -143,9 +128,9 @@ export const ExamHeader = ({
       <header className="classic-exam-header source-exam-header" role="banner">
         <button
           type="button"
-          className={`classic-header-stats source-item-info-trigger ${openPanel === "overview" ? "is-open" : ""}`}
-          aria-expanded={openPanel === "overview"}
-          onClick={() => togglePanel("overview")}
+          className={`classic-header-stats source-item-info-trigger ${activePopup === "overview" ? "is-open" : ""}`}
+          aria-expanded={activePopup === "overview"}
+          onClick={() => togglePopup("overview")}
           title="Item Information"
         >
           <span>Item: {itemInSection} of {itemsInSection}</span>
@@ -163,21 +148,21 @@ export const ExamHeader = ({
         </nav>
 
         <div className="classic-header-tools" aria-label="Exam tools">
-          <div className="classic-header-tool-slot"><LabValues /></div>
+          <div className="classic-header-tool-slot"><CoordinatedLabValues /></div>
           <div className="classic-header-tool-slot"><Notes notes={note} onNotesChange={onNoteChange} /></div>
           <div className="classic-header-tool-slot"><Calculator /></div>
           <div className="classic-settings-wrap">
             <button
               type="button"
-              className={`classic-header-settings ${openPanel === "settings" ? "is-open" : ""}`}
-              onClick={() => togglePanel("settings")}
-              aria-expanded={openPanel === "settings"}
+              className={`classic-header-settings ${activePopup === "settings" ? "is-open" : ""}`}
+              onClick={() => togglePopup("settings")}
+              aria-expanded={activePopup === "settings"}
               title="Settings"
             >
               <Menu aria-hidden="true" /><span>Settings</span>
             </button>
 
-            {openPanel === "settings" ? (
+            {activePopup === "settings" ? (
               <div className="classic-settings-menu source-settings-menu" role="menu">
                 <div className="source-settings-submenu-wrap">
                   <button type="button" role="menuitem" aria-haspopup="true" aria-expanded={showResizeMenu} onClick={() => { setShowResizeMenu((value) => !value); setShowColorMenu(false); }}>
@@ -185,7 +170,7 @@ export const ExamHeader = ({
                   </button>
                   {showResizeMenu ? (
                     <div className="source-settings-submenu source-resize-menu" role="menu">
-                      {[100, 125, 150, 200].map((zoom) => (
+                      {([100, 125, 150, 200] as const).map((zoom) => (
                         <button key={zoom} type="button" role="menuitemradio" aria-checked={textZoom === zoom} onClick={() => { setTextZoom(zoom); setShowResizeMenu(false); }}>
                           <span>{zoom}%{textZoom === zoom ? "*" : ""}</span>
                         </button>
@@ -206,12 +191,10 @@ export const ExamHeader = ({
                   ) : null}
                 </div>
 
-                <button type="button" role="menuitemcheckbox" aria-checked={showStrikeout} onClick={() => setShowStrikeout((value) => !value)}>
+                <button type="button" role="menuitemcheckbox" aria-checked={showStrikeout} onClick={() => setShowStrikeout(!showStrikeout)}>
                   <span>Show/Hide Strikeout</span>
                 </button>
-                <button type="button" role="menuitem" id="tools-help" onClick={() => { setOpenPanel("help"); setShowResizeMenu(false); setShowColorMenu(false); }}>
-                  <span>Help</span>
-                </button>
+                <button type="button" role="menuitem" id="tools-help" onClick={() => openPopup("help")}><span>Help</span></button>
               </div>
             ) : null}
           </div>
@@ -220,34 +203,34 @@ export const ExamHeader = ({
 
       <footer className="classic-bottom-bar source-bottom-bar" aria-label="Exam controls">
         <div className="classic-footer-left">
-          <button type="button" className={`source-timer-trigger ${openPanel === "timer" ? "is-open" : ""}`} onClick={() => togglePanel("timer")} aria-expanded={openPanel === "timer"}>
-            <span>Block Time Remaining:</span><strong>{formatTime(timeRemaining)}</strong>
-            {showTimer ? <><span>Day Time Remaining:</span><strong>{formatTime(dayRemaining)}</strong></> : null}
+          <button type="button" className={`source-timer-trigger ${activePopup === "timer" ? "is-open" : ""}`} onClick={() => togglePopup("timer")} aria-expanded={activePopup === "timer"}>
+            <span>Block Time Remaining:</span><strong>{showTimer ? formatClock(timeRemaining) : "untimed"}</strong>
+            {showTimer ? <><span>Day Time Remaining:</span><strong>{formatClock(dayRemaining)}</strong></> : null}
           </button>
           <button type="button" className="classic-footer-button" onClick={onPause} title="Pause"><Pause aria-hidden="true" /><span>Pause</span></button>
         </div>
 
         <button type="button" className="classic-footer-button classic-lock-button" onClick={onPause} title="Lock"><LockKeyhole aria-hidden="true" /><span>Lock</span></button>
-        <button type="button" className={`classic-footer-button classic-end-button ${unanswered === 0 ? "is-complete" : ""}`} onClick={() => togglePanel("end")} title="End Block">
+        <button type="button" className={`classic-footer-button classic-end-button ${unanswered === 0 ? "is-complete" : ""}`} onClick={() => togglePopup("end")} title="End Block">
           <span className="classic-end-icon">{unanswered === 0 ? <ChevronRight aria-hidden="true" /> : <X aria-hidden="true" />}</span><span>End Block</span>
         </button>
       </footer>
 
-      {openPanel === "overview" ? (
+      {activePopup === "overview" ? (
         <section className="source-overview-panel" role="dialog" aria-modal="false" aria-labelledby="overview-title">
           <div className="source-panel-heading" id="overview-title">Exam Overview</div>
           <div className="source-overview-caption">Day 1 of 1</div>
           <table><thead><tr><th>Block</th><th>Time</th><th>Items</th></tr></thead><tbody>
-            {overviewRows.map((row) => (
+            {sections.map((row) => (
               <tr key={row.block} className={row.block === currentSection ? "is-current" : ""}>
-                <td>{row.completed ? "✓ " : ""}{row.block}</td><td>1 hr 0 min 0 sec</td><td>{row.items}</td>
+                <td>{row.completed ? "✓ " : ""}{row.block}</td><td>{formatLongTime(row.durationSeconds)}</td><td>{row.itemCount}</td>
               </tr>
             ))}
           </tbody></table>
         </section>
       ) : null}
 
-      {openPanel === "timer" ? (
+      {activePopup === "timer" ? (
         <section className="source-timer-panel" role="dialog" aria-modal="false" aria-labelledby="timer-title">
           <div className="source-panel-heading" id="timer-title">Time Information</div>
           <div className="source-time-section">
@@ -255,7 +238,7 @@ export const ExamHeader = ({
             <dl>
               <div><dt>Time Remaining</dt><dd>{showTimer ? formatLongTime(timeRemaining) : "untimed"}</dd></div>
               <div><dt>Elapsed Time</dt><dd>{formatLongTime(blockElapsed)}</dd></div>
-              <div><dt>Length of Block</dt><dd>{showTimer ? formatLongTime(BLOCK_SECONDS) : "untimed"}</dd></div>
+              <div><dt>Length of Block</dt><dd>{showTimer ? formatLongTime(sectionTimeLimitSeconds) : "untimed"}</dd></div>
             </dl>
           </div>
           <div className="source-time-section">
@@ -263,29 +246,29 @@ export const ExamHeader = ({
             <dl>
               <div><dt>Time Remaining</dt><dd>{showTimer ? formatLongTime(dayRemaining) : "untimed"}</dd></div>
               <div><dt>Elapsed Time</dt><dd>{formatLongTime(dayElapsed)}</dd></div>
-              <div><dt>Total Time</dt><dd>{showTimer ? formatLongTime(dayTotal) : "untimed"}</dd></div>
-              <div><dt>Break Time Remaining</dt><dd>0 hr 0 min 0 sec</dd></div>
+              <div><dt>Total Time</dt><dd>{showTimer ? formatLongTime(dayTimeLimitSeconds) : "untimed"}</dd></div>
+              <div><dt>Break Time Remaining</dt><dd>Not available</dd></div>
             </dl>
           </div>
         </section>
       ) : null}
 
-      {openPanel === "end" ? (
+      {activePopup === "end" ? (
         <section className="source-end-dialog" role="alertdialog" aria-modal="true" aria-labelledby="source-end-title">
           <div className="source-panel-heading" id="source-end-title">End Block</div>
           <div className="source-end-copy">
             {unanswered > 0 ? <><p>There {unanswered === 1 ? "is" : "are"} still <strong>{unanswered}</strong> incomplete item{unanswered === 1 ? "" : "s"} in this block.</p><p>Are you sure that you wish to end the block?</p></> : <><p>Once you exit this block you will NOT be able to return to any of the items.</p><p>Are you sure that you wish to exit this block?</p></>}
             {markedInSection > 0 ? <p>You have {markedInSection} marked item{markedInSection === 1 ? "" : "s"}.</p> : null}
           </div>
-          <div className="source-end-actions"><button type="button" onClick={confirmEndBlock}>End Block</button><button type="button" autoFocus onClick={() => setOpenPanel(null)}>Remain in Block</button></div>
+          <div className="source-end-actions"><button type="button" onClick={confirmEndBlock}>End Block</button><button type="button" autoFocus onClick={() => closePopup("end")}>Remain in Block</button></div>
         </section>
       ) : null}
 
-      {openPanel === "help" ? (
+      {activePopup === "help" ? (
         <section id="helpContainer" className="source-help-container source-help-from-driver" role="dialog" aria-label="Help" aria-modal="false">
           <div className="source-help-handle">
             <h2>Exam Interface and Features</h2>
-            <button className="source-help-close" type="button" aria-label="Close" title="Close" autoFocus onClick={() => setOpenPanel(null)}>
+            <button className="source-help-close" type="button" aria-label="Close" title="Close" autoFocus onClick={() => closePopup("help")}>
               <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2zm3.354 4.646L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 1 1 .708-.708z" /></svg>
             </button>
           </div>
