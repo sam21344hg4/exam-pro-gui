@@ -21,8 +21,8 @@
   padding: 0 5px !important;
   display: flex !important;
   align-items: center !important;
-  justify-content: stretch !important;
-  gap: 5px !important;
+  justify-content: flex-start !important;
+  gap: 3px !important;
   box-sizing: border-box !important;
 }
 
@@ -32,31 +32,75 @@
 
 .classic-option {
   flex: 1 1 auto !important;
-  width: 100% !important;
+  width: auto !important;
   min-width: 0 !important;
   min-height: 28px !important;
+  margin: 0 !important;
   padding: 4px 0 !important;
-  display: flex !important;
-  align-items: flex-start !important;
+  display: inline-flex !important;
+  align-items: center !important;
   justify-content: flex-start !important;
   gap: 5px !important;
+  border: 0 !important;
+  background: transparent !important;
   text-align: left !important;
   cursor: pointer !important;
+  box-sizing: border-box !important;
 }
 
 .classic-option:disabled {
   cursor: default !important;
 }
 
+/* Keep the simulated radio perfectly stable regardless of global styles. */
+.classic-radio {
+  position: relative !important;
+  width: 16px !important;
+  height: 16px !important;
+  min-width: 16px !important;
+  min-height: 16px !important;
+  flex: 0 0 16px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: inline-block !important;
+  border: 1px solid #4f87ad !important;
+  border-radius: 50% !important;
+  background: #fff !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+  vertical-align: middle !important;
+}
+
+.classic-radio-dot {
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  width: 8px !important;
+  height: 8px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background: #174f82 !important;
+  transform: translate(-50%, -50%) !important;
+  box-sizing: border-box !important;
+  pointer-events: none !important;
+}
+
 .classic-option-text {
   min-width: 0 !important;
   white-space: normal !important;
   overflow-wrap: anywhere;
+  line-height: 1.25 !important;
 }
 
 .classic-strike-button {
   flex: 0 0 24px !important;
-  margin-left: 3px !important;
+  width: 24px !important;
+  height: 28px !important;
+  margin: 0 0 0 3px !important;
+  padding: 0 !important;
+  align-self: center !important;
 }
 
 .classic-proceed-button {
