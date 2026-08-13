@@ -143,7 +143,7 @@ const Index = () => {
   }, [mode, isPaused]);
 
   useEffect(() => {
-    if ((mode !== "breakintro" && mode !== "break") || isPaused) return;
+    if (mode !== "break" || isPaused) return;
     const interval = window.setInterval(() => {
       setBreakTimeRemaining((previous) => previous - 1);
       setTimeSpent((previous) => previous + 1);
@@ -152,7 +152,7 @@ const Index = () => {
   }, [mode, isPaused]);
 
   useEffect(() => {
-    if ((mode === "timed" || mode === "breakintro" || mode === "break") && timeSpent >= dayTimeLimitSeconds) {
+    if ((mode === "timed" || mode === "break") && timeSpent >= dayTimeLimitSeconds) {
       setMode("complete");
       dismissAllTools();
     }
@@ -160,14 +160,11 @@ const Index = () => {
 
   useEffect(() => {
     if (mode !== "timed" || timeRemaining > 0) return;
-
-    if (currentSection < effectiveTotalSections) {
-      startSection(currentSection + 1);
-    } else {
-      setMode("complete");
-      dismissAllTools();
-    }
-  }, [mode, timeRemaining, currentSection, effectiveTotalSections, startSection, dismissAllTools]);
+    setShowBlockReview(false);
+    dismissAllTools();
+    if (currentSection < effectiveTotalSections) setMode("breakintro");
+    else setMode("complete");
+  }, [mode, timeRemaining, currentSection, effectiveTotalSections, dismissAllTools]);
 
   useEffect(() => {
     if (mode !== "practice" || isPaused) return;
@@ -198,12 +195,8 @@ const Index = () => {
     setShowBlockReview(false);
     setIsPaused(false);
     dismissAllTools();
-
-    if (currentSection < effectiveTotalSections) {
-      setMode("breakintro");
-    } else {
-      setMode("complete");
-    }
+    if (currentSection < effectiveTotalSections) setMode("breakintro");
+    else setMode("complete");
   }, [currentSection, effectiveTotalSections, dismissAllTools]);
 
   const handleEndBlock = useCallback(() => {
@@ -361,24 +354,21 @@ const Index = () => {
     scrollExamTop();
   }, [dismissAllTools, scrollExamTop]);
 
-  if (mode === "start") {
-    return <StartScreen exams={availableExams} selectedExam={selectedExam} onSelectExam={handleSelectExam} onStart={handleStart} onPractice={handlePractice} />;
-  }
+  if (mode === "start") return <StartScreen exams={availableExams} selectedExam={selectedExam} onSelectExam={handleSelectExam} onStart={handleStart} onPractice={handlePractice} />;
 
-  if (mode === "complete") {
-    return <div className="min-h-screen flex items-center justify-center p-4 bg-background"><ExamSummary questions={questions} answers={answers} timeSpent={timeSpent} onRestart={handleRestart} onReview={handlePostExamReview} /></div>;
-  }
+  if (mode === "complete") return <div className="min-h-screen flex items-center justify-center p-4 bg-background"><ExamSummary questions={questions} answers={answers} timeSpent={timeSpent} onRestart={handleRestart} onReview={handlePostExamReview} /></div>;
 
   if (mode === "breakintro" || mode === "break") {
     const nextBlock = currentSection + 1;
     const breakOverBy = Math.max(-breakTimeRemaining, 0);
+    const dayRemaining = Math.max(dayTimeLimitSeconds - timeSpent, 0);
     return (
       <div className="source-break-shell">
         <section className="source-break-card" aria-labelledby="source-break-title">
           <h1 id="source-break-title">{mode === "breakintro" ? "Break" : "Break Time"}</h1>
           <div className="source-break-times">
             <div><span>Break Time Remaining:</span><strong>{breakTimeRemaining > 0 ? `${Math.floor(breakTimeRemaining / 60)} min ${Math.max(0, breakTimeRemaining % 60)} sec` : "0 min 0 sec"}</strong></div>
-            <div><span>Day Time Remaining:</span><strong>{Math.max(dayTimeLimitSeconds - timeSpent, 0) > 0 ? `${Math.floor(Math.max(dayTimeLimitSeconds - timeSpent, 0) / 3600)} hr ${Math.floor((Math.max(dayTimeLimitSeconds - timeSpent, 0) % 3600) / 60)} min ${Math.max(dayTimeLimitSeconds - timeSpent, 0) % 60} sec` : "0 min 0 sec"}</strong></div>
+            <div><span>Day Time Remaining:</span><strong>{dayRemaining >= 3600 ? `${Math.floor(dayRemaining / 3600)} hr ${Math.floor((dayRemaining % 3600) / 60)} min ${dayRemaining % 60} sec` : `${Math.floor(dayRemaining / 60)} min ${dayRemaining % 60} sec`}</strong></div>
             {breakOverBy > 0 ? <div className="source-break-warning">Break time exceeded by {Math.floor(breakOverBy / 60)} min {breakOverBy % 60} sec.</div> : null}
           </div>
           <div className="source-break-actions">
@@ -440,27 +430,11 @@ const Index = () => {
         {showBlockReview ? (
           <BlockReview sectionStart={sectionInfo.start} sectionEnd={sectionInfo.end} currentQuestion={currentQuestion} answers={answers} flagged={flagged} onNavigate={handleNavigate} onReturn={() => setShowBlockReview(false)} onEndBlock={handleEndBlock} />
         ) : (
-          <QuestionCard
-            question={question}
-            displayNumber={displayNumber}
-            selectedAnswer={answers[currentQuestion] || null}
-            showExplanation={showExplanation || mode === "review"}
-            onSelectAnswer={handleSelectAnswer}
-            onNext={handleNext}
-            strikethroughs={strikethroughs}
-            onToggleStrikethrough={handleToggleStrikethrough}
-            highlights={highlights[currentQuestion] || []}
-            onAddHighlight={handleAddHighlight}
-            onRemoveHighlight={handleRemoveHighlight}
-          />
+          <QuestionCard question={question} displayNumber={displayNumber} selectedAnswer={answers[currentQuestion] || null} showExplanation={showExplanation || mode === "review"} onSelectAnswer={handleSelectAnswer} onNext={handleNext} strikethroughs={strikethroughs} onToggleStrikethrough={handleToggleStrikethrough} highlights={highlights[currentQuestion] || []} onAddHighlight={handleAddHighlight} onRemoveHighlight={handleRemoveHighlight} />
         )}
       </main>
 
-      {isPaused ? (
-        <div className="classic-pause-overlay" role="dialog" aria-modal="true" aria-labelledby="pause-title">
-          <section className="classic-pause-card"><h2 id="pause-title">Exam Paused</h2><button type="button" autoFocus onClick={() => setIsPaused(false)}>Resume</button></section>
-        </div>
-      ) : null}
+      {isPaused ? <div className="classic-pause-overlay" role="dialog" aria-modal="true" aria-labelledby="pause-title"><section className="classic-pause-card"><h2 id="pause-title">Exam Paused</h2><button type="button" autoFocus onClick={() => setIsPaused(false)}>Resume</button></section></div> : null}
     </div>
   );
 };
