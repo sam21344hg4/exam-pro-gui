@@ -9,7 +9,6 @@ interface OptionButtonProps {
   showResult: boolean;
   onClick: () => void;
   disabled?: boolean;
-  fontSize?: number;
   isStrikethrough?: boolean;
   onToggleStrikethrough?: () => void;
 }
@@ -22,7 +21,6 @@ export const OptionButton = ({
   showResult,
   onClick,
   disabled,
-  fontSize = 18,
   isStrikethrough = false,
   onToggleStrikethrough,
 }: OptionButtonProps) => {
@@ -52,10 +50,7 @@ export const OptionButton = ({
           disabled={disabled}
           aria-label={`Option ${label}`}
         />
-        <span
-          className={cn("classic-option-text", isStrikethrough && !showResult && "is-struck")}
-          style={{ fontSize: `${Math.max(fontSize - 2, 14)}px` }}
-        >
+        <span className={cn("classic-option-text", isStrikethrough && !showResult && "is-struck")}>
           <strong>{label}.</strong> {text}
         </span>
       </label>
