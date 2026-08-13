@@ -39,8 +39,6 @@ export const QuestionCard = ({
 }: QuestionCardProps) => {
   const isCorrect = selectedAnswer === question.correctAnswer;
   const stemRef = useRef<HTMLDivElement>(null);
-
-  // Source media-gallery defaults: invert [-100..100] begins at -100, contrast at 0.
   const [activeImageTool, setActiveImageTool] = useState<ImageTool>(null);
   const [invertValue, setInvertValue] = useState(-100);
   const [contrastValue, setContrastValue] = useState(0);
@@ -127,6 +125,8 @@ export const QuestionCard = ({
   };
 
   const openZoom = () => {
+    // The real driver does not leave Settings/other header panels floating over the image viewer.
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
     setActiveImageTool(null);
     setZoomLevel(1);
     setShowZoom(true);
