@@ -18,17 +18,15 @@ export const CoordinatedLabValues = () => {
     const trigger = getTrigger();
     if (!trigger) return;
 
-    const syncFromLegacyTrigger = () => {
+    const observer = new MutationObserver(() => {
       const isOpen = trigger.getAttribute("aria-expanded") === "true";
       if (isOpen && activePopup !== "lab") openPopup("lab");
       if (!isOpen && activePopup === "lab") closePopup("lab");
-
       if (wasOpenRef.current && !isOpen) trigger.focus();
       wasOpenRef.current = isOpen;
-    };
+    });
 
-    syncFromLegacyTrigger();
-    const observer = new MutationObserver(syncFromLegacyTrigger);
+    wasOpenRef.current = trigger.getAttribute("aria-expanded") === "true";
     observer.observe(trigger, { attributes: true, attributeFilter: ["aria-expanded"] });
     return () => observer.disconnect();
   }, [activePopup]);
