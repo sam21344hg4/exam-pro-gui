@@ -599,7 +599,7 @@ body.classic-show-strikeout .classic-strike-button {
   left: 58px !important;
   top: -1px !important;
   width: 118px !important;
-  height: 232px !important;
+  height: 244px !important;
   padding: 8px 8px 7px !important;
   display: flex !important;
   flex-direction: column !important;
@@ -621,7 +621,7 @@ body.classic-show-strikeout .classic-strike-button {
   transform-origin: center !important;
   accent-color: #006ec0 !important;
 }
-.source-image-slider-toggle { width: 100% !important; display: flex !important; align-items: center !important; justify-content: center !important; gap: 6px !important; font: 13px Arial, Helvetica, sans-serif !important; }
+.source-image-slider-toggle { width: 100% !important; margin-top: 12px !important; display: flex !important; align-items: center !important; justify-content: center !important; gap: 6px !important; font: 13px Arial, Helvetica, sans-serif !important; }
 .source-image-slider-toggle input { margin: 0 !important; }
 .source-image-slider-reset {
   width: auto !important;
