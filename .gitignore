@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local archives / downloads
+Downloads.7z
+*.7z
