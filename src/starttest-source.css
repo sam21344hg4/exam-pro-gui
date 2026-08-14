@@ -125,11 +125,11 @@ body {
   justify-self: center !important;
   border: 1px solid #333 !important;
   border-radius: 50% !important;
-  background: #fff !important;
+  background: #111 !important;
   box-sizing: border-box !important;
 }
-.classic-status-item.is-answered .classic-status-dot { background: #111 !important; }
 .classic-status-item.is-current .classic-status-dot { border-color: #fff !important; background: #fff !important; }
+.classic-status-item.is-answered .classic-status-dot { background: transparent !important; border-color: transparent !important; }
 
 .classic-status-icons {
   min-width: 28px !important;
