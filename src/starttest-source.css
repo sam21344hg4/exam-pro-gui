@@ -138,6 +138,14 @@ body {
   justify-content: flex-end !important;
   gap: 1px !important;
 }
+.classic-status-icon-slot {
+  width: 14px !important;
+  height: 14px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+}
 .classic-status-note {
   width: 13px !important;
   height: 13px !important;
@@ -152,6 +160,19 @@ body {
   transform: rotate(-20deg) !important;
 }
 .classic-status-item.is-current .classic-status-flag { stroke: #fff !important; }
+
+.classic-status-key {
+  width: 100% !important;
+  height: 20px !important;
+  padding: 0 3px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #000 !important;
+  font: 16px/15px Arial, Helvetica, sans-serif !important;
+  cursor: default !important;
+  box-sizing: border-box !important;
+}
 
 /* Header ------------------------------------------------------------------ */
 .source-exam-header,

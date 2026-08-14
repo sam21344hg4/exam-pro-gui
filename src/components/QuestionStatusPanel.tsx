@@ -50,12 +50,17 @@ export const QuestionStatusPanel = ({
               <span className="classic-status-dot" aria-hidden="true" />
               <span>{displayNumber}</span>
               <span className="classic-status-icons" aria-hidden="true">
-                {note ? <Pencil className="classic-status-note" /> : null}
-                {isFlagged ? <Flag className="classic-status-flag" /> : null}
+                <span className="classic-status-icon-slot">
+                  {note ? <Pencil className="classic-status-note" /> : null}
+                </span>
+                <span className="classic-status-icon-slot">
+                  {isFlagged ? <Flag className="classic-status-flag" /> : null}
+                </span>
               </span>
             </button>
           );
         })}
+        <div className="classic-status-key">Key</div>
       </div>
     </aside>
   );
