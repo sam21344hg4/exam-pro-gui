@@ -166,6 +166,7 @@ export const StartScreen = ({
           </div>
         </div>
 
+        <div className="mt-4 text-center"><a href="/qbank" className="inline-flex rounded-lg border border-border bg-card px-5 py-3 font-medium text-foreground hover:bg-muted">Open imported Qbank</a></div>
         {/* Footer */}
         <motion.p
           initial={{ opacity: 0 }}
