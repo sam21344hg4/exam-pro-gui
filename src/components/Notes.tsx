@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { StickyNote, X } from "lucide-react";
+import { Pencil, X } from "lucide-react";
 import { useExamUI } from "./ExamUIProvider";
 
 interface NotesProps {
@@ -17,6 +17,7 @@ export const Notes = ({ itemId, notes, onNotesChange }: NotesProps) => {
   const draftRef = useRef(notes);
   const openItemRef = useRef(resolvedItemId);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const wasOpenRef = useRef(false);
   const callbackRef = useRef(onNotesChange);
   const itemIdModeRef = useRef(itemId !== undefined);
@@ -77,6 +78,8 @@ export const Notes = ({ itemId, notes, onNotesChange }: NotesProps) => {
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
+      const focused = document.activeElement;
+      if (!focused || !panelRef.current?.contains(focused)) return;
       event.preventDefault();
       event.stopPropagation();
       persistDraft();
@@ -99,7 +102,7 @@ export const Notes = ({ itemId, notes, onNotesChange }: NotesProps) => {
     closePopup("notes");
   };
 
-  const deleteNote = () => {
+  const deleteNotes = () => {
     setDraft("");
     draftRef.current = "";
     commitNote(openItemRef.current, "");
@@ -108,26 +111,17 @@ export const Notes = ({ itemId, notes, onNotesChange }: NotesProps) => {
 
   const panel = open
     ? createPortal(
-        <div className="nbme-notes-panel" role="dialog" aria-label="Notepad" aria-modal="false">
+        <div ref={panelRef} className="nbme-notes-panel" role="dialog" aria-label="Notepad" aria-modal="false">
           <div className="nbme-notes-handle">
             <h2 className="classic-visually-hidden">Notepad</h2>
             <button type="button" className="nbme-notes-close" aria-label="Close" title="Close" onClick={saveAndClose}>
               <X aria-hidden="true" />
             </button>
           </div>
-          <textarea
-            rows={4}
-            cols={150}
-            wrap="hard"
-            maxLength={700}
-            value={draft}
-            onChange={(event) => setDraft(event.target.value)}
-            autoFocus
-            aria-label="Notes"
-          />
+          <textarea rows={4} cols={150} wrap="hard" maxLength={700} value={draft} onChange={(event) => setDraft(event.target.value)} autoFocus aria-label="Notes" />
           <div className="nbme-notes-actions">
             <button type="button" onClick={saveAndClose}>Save and Close</button>
-            <button type="button" onClick={deleteNote}>Delete Note</button>
+            <button type="button" onClick={deleteNotes}>Delete Notes</button>
           </div>
         </div>,
         document.body
@@ -137,7 +131,7 @@ export const Notes = ({ itemId, notes, onNotesChange }: NotesProps) => {
   return (
     <>
       <button ref={triggerRef} type="button" className="classic-tool-trigger" title="Notes" aria-expanded={open} onClick={() => (open ? saveAndClose() : openPanel())}>
-        <span className="classic-tool-square-icon"><StickyNote size={23} strokeWidth={2.1} /></span>
+        <span className="classic-tool-square-icon"><Pencil size={23} strokeWidth={2.1} /></span>
         <span>Notes</span>
       </button>
       {panel}

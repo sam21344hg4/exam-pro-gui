@@ -14,6 +14,10 @@ export interface ExamData {
   timeLimit: number;
   sections: ExamSectionConfig[];
   questions: Question[];
+  /** StartTest program id. The captured USMLE interface is program 267. */
+  programId: string;
+  /** Explicit authorized break allotment. Do not infer this from tutorial examples. */
+  breakTimeMinutes: number;
 }
 
 export const availableExams: ExamData[] = [
@@ -30,6 +34,8 @@ export const availableExams: ExamData[] = [
       { itemCount: 50, timeLimitMinutes: 60 },
     ],
     questions: examQuestions,
+    programId: "267",
+    breakTimeMinutes: 0,
   },
   {
     id: "nbme25",
@@ -39,6 +45,8 @@ export const availableExams: ExamData[] = [
     timeLimit: nbme25Info.timeLimit,
     sections: [{ itemCount: nbme25Questions.length, timeLimitMinutes: 60 }],
     questions: nbme25Questions,
+    programId: "267",
+    breakTimeMinutes: 0,
   },
 ];
 

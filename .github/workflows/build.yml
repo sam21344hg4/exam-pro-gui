@@ -2,7 +2,9 @@ name: Build
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+      - repair/source-audit-2026-08-13
   workflow_dispatch:
 
 jobs:
@@ -22,3 +24,28 @@ jobs:
         run: npx tsc -b
       - name: Build
         run: npm run build
+      - name: Install browser verifier
+        if: github.ref == 'refs/heads/repair/source-audit-2026-08-13'
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Start verification server
+        if: github.ref == 'refs/heads/repair/source-audit-2026-08-13'
+        run: |
+          nohup npm run dev -- --host 127.0.0.1 --port 8080 > /tmp/exam-pro-vite.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8080 >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/exam-pro-vite.log
+          exit 1
+      - name: Browser source audit
+        if: github.ref == 'refs/heads/repair/source-audit-2026-08-13'
+        run: node scripts/source-audit.mjs
+      - name: Upload browser audit
+        if: always() && github.ref == 'refs/heads/repair/source-audit-2026-08-13'
+        uses: actions/upload-artifact@v4
+        with:
+          name: source-audit-${{ github.sha }}
+          path: artifacts/source-audit
+          if-no-files-found: warn
